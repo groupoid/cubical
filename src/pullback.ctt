@@ -10,7 +10,7 @@ import equiv
 
 --       z2
 --    Z ----> B
--- z1 |       | g
+-- z1 |  pb   | g
 --    V       V
 --    A ----> C
 --        f
@@ -51,10 +51,10 @@ completePullback (A B C: U) (f: A -> C) (g: B -> C)
     Z: U = pullback A B C f g
     p: Path U Z Z = <i>Z
     s (z: Z): Z = comp p z []
-    z1: Z -> A = (p_1 A B C f g)
-    z2: Z -> B = (p_2 A B C f g)
+    z1: Z -> A = (pb1 A B C f g)
+    z2: Z -> B = (pb2 A B C f g)
     z3: U = (z:Z) -> Path C ((o Z A C f z1) z) (((o Z B C g z2)) z)
-    I: Z -> Z = induced Z A B C f g z1 z2 (\(z:Z) -> p_3 A B C f g z)
+    I: Z -> Z = induced Z A B C f g z1 z2 (\(z:Z) -> pb3 A B C f g z)
     lem1 (z:Z): PathP p z z = <i> z
     lem2 (z:Z): PathP p (s z) z =   <i> comp p z     [(i=1) -> <j> z]
     x1 (z:Z): fiber Z Z I z = (s z, <i> comp p (s z) [(i=0) -> lem2 z, (i=1) -> lem1 (s z)])
@@ -70,7 +70,7 @@ completePullback (A B C: U) (f: A -> C) (g: B -> C)
     P (z: Z): isContr (fiber Z Z I z) = ((x1 z),lem9 z)
 
 --   fiber_f(y) ----> A
---            |       | f
+--            |  pb   | f
 --            V       V
 --            1 ----> B
 --              \_.y

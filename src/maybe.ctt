@@ -3,7 +3,7 @@
 
 module maybe where
 import proto
-import proto_path
+import path
 
 data maybe  (A: U) = nothing | just (a: A)
 

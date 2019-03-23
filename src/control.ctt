@@ -6,7 +6,7 @@
 
 module control where
 import proto
-import proto_path
+import path
 
 -- Signature equations
 pure_sig       (F:U->U):U=   (A: U) ->           A  -> F A

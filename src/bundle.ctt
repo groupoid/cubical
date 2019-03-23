@@ -127,29 +127,3 @@ FBundle (E B: U) (p: E -> B) (F: U) (x: isFBundle3 E B p F) (b: B)
     p (\(y: E) -> (x.1 (p y),F))
   = undefined
 
--- Formal Disk Bundle
-
-isInfinitesimalClose (X: U) (a x': X): U = Path (Im X) (ImUnit X a) (ImUnit X x')
-formalDisc (X: U) (a: X): U = (x': X) * isInfinitesimalClose X a x'
-unitDisc (X: U) (x: Im X): U = (x': X) * Path (Im X) x (ImUnit X x')
-starDisc (X: U) (x: X): formalDisc X x  = (x, refl (Im X) (ImUnit X x))
-differential (X Y: U) (f: X -> Y) (x: X) : formalDisc X x -> formalDisc Y (f x) = undefined
-formalDiscBundle (A: U): U = (a: A) * formalDisc A a -- T_\infty(A) := \Sigma_{a:A}\mathbb{D}_a
-
-lemma45 (A B C: U) (f: A -> B) (g: B -> C) (x: A)
-  : Path (formalDisc A x -> formalDisc C ((o A B C g f) x))
-         (differential A C (o A B C g f) x)
-         (o (formalDisc A x) (formalDisc B (f x)) (formalDisc C ((o A B C g f) x))
-            (differential B C g (f x)) (differential A B f x)) = undefined
-
-preservesInifinitesimalProximity (X Y: U) (x x': X) (f: X -> Y)
-  : isInfinitesimalClose X x x' -> isInfinitesimalClose Y (f x) (f x')
-  = undefined
-
--- Homogeneous Structure on A = (<i>A)
-
-homogeneous (A: U): U
-  = (e: A)
-  * (translationsFamily: (x: A) -> Path U A A) -- could be non-trivial
-  * ((x: A) -> Path A (transport (translationsFamily x) e) x)
-

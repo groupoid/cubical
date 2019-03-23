@@ -31,6 +31,7 @@ isHomotopyInitialNat (I: natOb): U
   * (x: natHom I C)
   * ((y: natHom I C) -> Path (natHom I C) x y)
 
+{-
 proof : isHomotopyInitialNat
          (nat,zero,\(x:nat)->succ x,tt)
       = ((nat,zero,\(x:nat)->succ x,tt),
@@ -42,6 +43,7 @@ proof : isHomotopyInitialNat
                     (nat,zero,\(x:nat)->succ x,tt)) ->
        refl (natHom (nat,zero,\(x:nat)->succ x,tt)
                     (nat,zero,\(x:nat)->succ x,tt)) p)
+-}
 
 listOb  (A: U): U = (X: U) * (nil: X) * (cons: A -> X -> X) * unit
 listHom (A: U) (x1 x2: listOb A): U

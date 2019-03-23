@@ -9,6 +9,12 @@ import trunc
 import pointed
 import suspension
 
+-- Homogeneous Structure on A = (<i>A)
+homogeneous (A: U): U
+  = (e: A)
+  * (translationsFamily: (x: A) -> Path U A A) -- could be non-trivial
+  * ((x: A) -> Path A (transport (translationsFamily x) e) x)
+
 -- Definition. Homotopy Groups of Spheres : \pi_{n}S^{m} = ||\Omega^{n}(S^{m})||_0
 piS (n: nat): (m: nat) -> U = split
    zero   -> sTrunc (space (omega n (bool,false)))

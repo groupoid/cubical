@@ -30,7 +30,7 @@ cokernel (A B: U) (f: B -> A): U = pushout A A B f f
 
 --      f
 --  A ----> B
---  |       | po2
+--  |   po  | po2
 --  V       V
 --  1 ----> cofiber_f
 --     po1
