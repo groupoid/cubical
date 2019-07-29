@@ -51,8 +51,10 @@ Author
 
 * Maxim Sokhatsky
 
-Credits
--------
+Acknowledgements
+----------------
+
+I would like to thank to:
 
 * Eugene Smolanka
 * Andy Melnikov
