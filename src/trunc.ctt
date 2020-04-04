@@ -21,6 +21,16 @@ pTruncRec (A B : U) (pP : isProp B) (f : A -> B) : pTrunc A -> B = split
   inc a -> f a
   inh x y @ i -> pP (pTruncRec A B pP f x) (pTruncRec A B pP f y) @ i
 
+pTruncLift (A B : U) (f : A -> B) : pTrunc A -> pTrunc B = split
+  inc a -> inc (f a)
+  inh x y @ i -> pTruncIsProp B (pTruncLift A B f x) (pTruncLift A B f y) @ i
+
+pTruncBinLift (A B C : U) (f : A -> B -> C) : pTrunc A -> pTrunc B -> pTrunc C = split
+  inc a -> pTruncLift B C (f a)
+  inh x y @ i -> \(b : pTrunc B) ->
+    pTruncIsProp C (pTruncBinLift A B C f x b)
+                   (pTruncBinLift A B C f y b) @ i
+
 pTruncElim (A : U) (B : (pTrunc A) -> U)
            (pP : (x : pTrunc A) -> isProp (B x))
            (f : (a : A) -> B (inc a))

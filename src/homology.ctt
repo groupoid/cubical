@@ -60,19 +60,22 @@ isSetSubEl (G: group) (P: subgroupProp G): isSet (subEl G P)
   = setSig G.1.1 P.1 G.1.2 (\(x : G.1.1) -> propSet (P.1 x) (P.2.1 x))
 
 subgroup (G: group) (P: subgroupProp G): group
-  = ((subEl G P,isSetSubEl G P),((op,asso,id,(lx,rx)),inv,(li,ri))) where
+  = ((subEl G P, isSetSubEl G P), ((op, assoc, id, (lx, rx)), inv, (li, ri))) where
     un: U = subEl G P
     op (x y: un): un = ((opGroup G) x.1 y.1, P.2.2.2.2 x.1 y.1 x.2 y.2)
     unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y =
       subtypeEquality G.1.1 P.1 P.2.1 x y p
-    asso: isAssociative un op =
-      \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) (G.2.1.2.1 x.1 y.1 z.1)
+    assoc: isAssociative un op =
+      \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z)
+                              ((isAssocGroup G) x.1 y.1 z.1)
     id: un = ((idGroup G),P.2.2.1)
-    lx (x: un): Path un (op id x) x = unPath (op id x) x (G.2.1.2.2.2.1 x.1)
-    rx (x: un): Path un (op x id) x = unPath (op x id) x (G.2.1.2.2.2.2 x.1)
-    inv (x: un): un = ((invGroup G) x.1,P.2.2.2.1 x.1 x.2)
-    li (x: un) : Path un (op (inv x) x) id = unPath (op (inv x) x) id (G.2.2.2.1 x.1)
-    ri (x: un) : Path un (op x (inv x)) id = unPath (op x (inv x)) id (G.2.2.2.2 x.1)
+    lx (x: un): Path un (op id x) x = unPath (op id x) x ((hasIdGroup G).1 x.1)
+    rx (x: un): Path un (op x id) x = unPath (op x id) x ((hasIdGroup G).2 x.1)
+    inv (x: un): un = ((invGroup G) x.1, P.2.2.2.1 x.1 x.2)
+    li (x: un) : Path un (op (inv x) x) id =
+      unPath (op (inv x) x) id ((hasInvGroup G).1 x.1)
+    ri (x: un) : Path un (op x (inv x)) id =
+      unPath (op x (inv x)) id ((hasInvGroup G).2 x.1)
 
 ker_prop (G H: group) (phi: grouphom G H)
   : subgroupProp G
@@ -95,8 +98,21 @@ im_prop (G H: group) (phi: grouphom G H)
     prop (x: H.1.1): U = pTrunc (fiber G.1.1 H.1.1 phi.1 x)
     ident: prop (idGroup H) = inc ((idGroup G),<i>phi.2.2 @ -i)
     level (x: H.1.1): isProp (prop x) = pTruncIsProp (fiber G.1.1 H.1.1 phi.1 x)
-    inv: (x: H.1.1) -> prop x -> prop ((invGroup H) x) = undefined
-    op: (g1 g2: H.1.1) -> prop g1 -> prop g2 -> prop ((opGroup H) g1 g2) = undefined
+    fib (x : H.1.1) : U = fiber G.1.1 H.1.1 phi.1 x
+    inv (x: H.1.1) : prop x -> prop ((invGroup H) x) =
+      pTruncLift (fib x) (fib ((invGroup H) x))
+        (\(u : fib x) ->
+          ((invGroup G) u.1,
+           <i> comp (<_> H.1.1) ((invGroup H) (u.2 @ i))
+                    [ (i = 0) -> <_> (invGroup H) x
+                    , (i = 1) -> <j> lem_grouphom_inv G H phi u.1 @ -j ]))
+    op (g1 g2: H.1.1) : prop g1 -> prop g2 -> prop ((opGroup H) g1 g2) =
+      pTruncBinLift (fib g1) (fib g2) (fib ((opGroup H) g1 g2))
+        (\(u : fib g1) (v : fib g2) ->
+          ((opGroup G) u.1 v.1,
+           <i> comp (<_> H.1.1) (phi.2.1 u.1 v.1 @ -i)
+                    [ (i = 0) -> <j> (opGroup H) (u.2 @ -j) (v.2 @ -j)
+                    , (i = 1) -> <_> phi.1 ((opGroup G) u.1 v.1) ]))
 
 Ker (G: abgroup) (H: group) (phi: grouphom (G.1,G.2.1) H): group
   = subgroup (G.1,G.2.1) (ker_prop (G.1,G.2.1) H phi)
@@ -144,8 +160,8 @@ kernel_is_normal (G H: group) (phi: grouphom G H): normalSubgroupProp G
     ker: subgroupProp G = ker_prop G H phi
     cond: isNormal G ker = (G,x) where
      x: (g1 g2: G.1.1)
-      -> PathP (<i> H.1.1) (phi.1 g2) H.2.1.2.2.1
-      -> PathP (<i> H.1.1) (phi.1 (G.2.1.1 (G.2.1.1 g1 g2) (G.2.2.1 g1))) H.2.1.2.2.1
+      -> PathP (<i> H.1.1) (phi.1 g2) (idGroup H)
+      -> PathP (<i> H.1.1) (phi.1 (conjugate G g1 g2)) (idGroup H)
       = undefined
 --  φ.pres-conj g₁ g₂ ∙ ap (H.conj (φ.f g₁)) pg₂ ∙ H.conj-ident-r (φ.f g₁)
 
