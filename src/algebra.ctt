@@ -314,6 +314,13 @@ lem_cgroup_inv_dist (g: abgroup) (a b: g.1.1)
     , (i = 1) -> <_> invCGroup g (opCGroup g a b) ]
 
 -- e⁻¹ ≡ e
+lemma_group_inv_id (g : group)
+  : Path g.1.1 (invGroup g (idGroup g)) (idGroup g)
+  = <i> comp (<_> g.1.1) ((hasIdGroup g).2 (invGroup g (idGroup g)) @ -i)
+    [ (i = 0) -> <_> invGroup g (idGroup g)
+    , (i = 1) -> (hasInvGroup g).1 (idGroup g) ]
+
+-- e⁻¹ ≡ e (abelian groups)
 lemma_cgroup_inv_id (g: abgroup)
   : Path g.1.1 (invCGroup g (idCGroup g)) (idCGroup g)
   = <i> comp (<_> g.1.1) ((hasIdCGroup g).2 (invCGroup g (idCGroup g)) @ -i)
