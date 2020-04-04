@@ -155,52 +155,40 @@ CochainComplex: U
 
 -- Theorems
 
+--                       phiUnfold
+--   φ (g1 * g2 * g1⁻¹) - - - - - - > φ g1 * φ g2 * (φ g1)⁻¹
+--            ^                               ^
+--            |                               |
+--            |                               |
+--            |                               |
+-- φ (g1 * g2) * φ g1⁻¹ ------------> φ g1 * φ g2 * φ g1⁻¹
+
+phiUnfold (G H : group) (phi : grouphom G H) (g1 g2 : G.1.1) :
+  Path H.1.1 (phi.1 (conjugate G g1 g2)) ((opGroup H) ((opGroup H) (phi.1 g1) (phi.1 g2)) ((invGroup H) (phi.1 g1))) =
+  <i> comp (<_> H.1.1) ((opGroup H) (phi.2.1 g1 g2 @ i) (phi.1 ((invGroup G) g1)))
+           [ (i = 0) -> <j> phi.2.1 ((opGroup G) g1 g2) ((invGroup G) g1) @ -j
+           , (i = 1) -> <j> ((opGroup H) ((opGroup H) (phi.1 g1) (phi.1 g2)) (lem_grouphom_inv G H phi g1 @ j)) ]
+
+--                          conjOne
+-- φ g1 * φ g2 * (φ g1)⁻¹ - - - - - - > 1
+--         ^                            ^
+--         |                            |
+--         |                            |
+--         |                            |
+--  φ g1 * 1 * (φ g1)⁻¹  --------> φ g1 * (φ g1)⁻¹
+
+conjOne (G H : group) (phi : grouphom G H) (g1 g2 : G.1.1) (p : Path H.1.1 (phi.1 g2) (idGroup H)) :
+  Path H.1.1 ((opGroup H) ((opGroup H) (phi.1 g1) (phi.1 g2)) ((invGroup H) (phi.1 g1))) (idGroup H) =
+  <i> comp (<_> H.1.1) ((opGroup H) ((hasIdGroup H).2 (phi.1 g1) @ i) ((invGroup H) (phi.1 g1)))
+           [ (i = 0) -> <j> (opGroup H) ((opGroup H) (phi.1 g1) (p @ -j)) ((invGroup H) (phi.1 g1))
+           , (i = 1) -> (hasInvGroup H).2 (phi.1 g1) ]
+
 kernel_is_normal (G H : group) (phi : grouphom G H) : normalSubgroupProp G
   = (ker, cond) where
     ker: subgroupProp G = ker_prop G H phi
-    --                       phiUnfold
-    --   φ (g1 * g2 * g1⁻¹) - - - - - - > φ g1 * φ g2 * (φ g1)⁻¹
-    --            ^                               ^
-    --            |                               |
-    --            |                               |
-    --            |                               |
-    -- φ (g1 * g2) * φ g1⁻¹ ------------> φ g1 * φ g2 * φ g1⁻¹
-    phiUnfold (g1 g2 : G.1.1) :
-      Path H.1.1 (phi.1 (conjugate G g1 g2))
-                 ((opGroup H) ((opGroup H) (phi.1 g1) (phi.1 g2))
-                              ((invGroup H) (phi.1 g1))) =
-      <i> comp (<_> H.1.1) ((opGroup H) (phi.2.1 g1 g2 @ i) (phi.1 ((invGroup G) g1)))
-               [ (i = 0) -> <j> phi.2.1 ((opGroup G) g1 g2) ((invGroup G) g1) @ -j
-               , (i = 1) -> <j> ((opGroup H) ((opGroup H) (phi.1 g1) (phi.1 g2))
-                                             (lem_grouphom_inv G H phi g1 @ j)) ]
-    --                          conjOne
-    -- φ g1 * φ g2 * (φ g1)⁻¹ - - - - - - > 1
-    --         ^                            ^
-    --         |                            |
-    --         |                            |
-    --         |                            |
-    --  φ g1 * 1 * (φ g1)⁻¹  --------> φ g1 * (φ g1)⁻¹
-    conjOne (g1 g2 : G.1.1) (p : Path H.1.1 (phi.1 g2) (idGroup H)) :
-      Path H.1.1 ((opGroup H) ((opGroup H) (phi.1 g1) (phi.1 g2))
-                              ((invGroup H) (phi.1 g1)))
-                 (idGroup H) =
-      <i> comp (<_> H.1.1) ((opGroup H) ((hasIdGroup H).2 (phi.1 g1) @ i)
-                                        ((invGroup H) (phi.1 g1)))
-               [ (i = 0) -> <j> (opGroup H) ((opGroup H) (phi.1 g1) (p @ -j))
-                                            ((invGroup H) (phi.1 g1))
-               , (i = 1) -> (hasInvGroup H).2 (phi.1 g1) ]
-    --                        phiConj
-    --     φ (g1 * g2 * g1⁻¹) - - - - - - > 1
-    --             ^                        |
-    --             |                        |
-    -- phiUnfold⁻¹ |                        |
-    --             |                        |
-    --    φ g1 * g2 * (φ g1)⁻¹ -----------> 1
-    --                           conjOne
     phiConj (g1 g2: G.1.1) (p : Path H.1.1 (phi.1 g2) (idGroup H)) :
       Path H.1.1 (phi.1 (conjugate G g1 g2)) (idGroup H)
-      = <i> comp (<_> H.1.1) (conjOne g1 g2 p @ i)
-                 [ (i = 0) -> <j> phiUnfold g1 g2 @ -j
+      = <i> comp (<_> H.1.1) (conjOne G H phi g1 g2 p @ i)
+                 [ (i = 0) -> <j> phiUnfold G H phi g1 g2 @ -j
                  , (i = 1) -> <_> idGroup H ]
     cond: isNormal G ker = (G, phiConj)
-
