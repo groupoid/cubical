@@ -323,9 +323,7 @@ lemma_group_inv_id (g : group)
 -- e⁻¹ ≡ e (abelian groups)
 lemma_cgroup_inv_id (g: abgroup)
   : Path g.1.1 (invCGroup g (idCGroup g)) (idCGroup g)
-  = <i> comp (<_> g.1.1) ((hasIdCGroup g).2 (invCGroup g (idCGroup g)) @ -i)
-    [ (i = 0) -> <_> invCGroup g (idCGroup g)
-    , (i = 1) -> (hasInvCGroup g).1 (idCGroup g) ]
+  = lemma_group_inv_id (g.1, g.2.1)
 
 -- Homomorphisms
 
