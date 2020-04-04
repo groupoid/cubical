@@ -80,9 +80,6 @@ ker_prop (G H: group) (phi: grouphom G H)
     prop (x: G.1.1): U = Path H.1.1 (phi.1 x) (idGroup H)
     ident: prop (idGroup G) = phi.2.2
     level (x: G.1.1): isProp (prop x) = \(p q: prop x) -> H.1.2 (phi.1 x) (idGroup H) p q
-    invLem (x : G.1.1) (p : prop x) : Path H.1.1 ((invGroup H) (phi.1 x))
-                                                 ((invGroup H) (idGroup H)) =
-      <i> (invGroup H) (p @ i)
     inv (x: G.1.1) (p : prop x) : prop ((invGroup G) x) =
       <i> comp (<_> H.1.1) ((invGroup H) (p @ i))
                [ (i = 0) -> <j> lem_grouphom_inv G H phi x @ -j
