@@ -497,9 +497,6 @@ isGroupHom (G H: group) (f: G.1.1 -> H.1.1): U
 isHom (G H: dgroup) (f: G.1.1 -> H.1.1): U
   = isGroupHom (G.1,G.2.1) (H.1,H.2.1) f
 
-isGroupKer (G H: group) (f: G.1.1 -> H.1.1): U
-  = (g: G.1.1) -> Path H.1.1 (f g) H.2.1.2.2.1
-
 isKer (G H: dgroup) (f: G.1.1 -> H.1.1): U
   = (g: G.1.1) -> Path H.1.1 (f g) (idGroup (H.1,H.2.1))
 

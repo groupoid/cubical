@@ -59,6 +59,15 @@ subEl (G: group) (P: subgroupProp G): U
 isSetSubEl (G: group) (P: subgroupProp G): isSet (subEl G P)
   = setSig G.1.1 P.1 G.1.2 (\(x : G.1.1) -> propSet (P.1 x) (P.2.1 x))
 
+isGroupHom (G H: group) (f: G.1.1 -> H.1.1): U
+  = (g1 g2: G.1.1) -> Path H.1.1 (f ((opGroup G) g1 g2)) ((opGroup H) (f g1) (f g2))
+
+isGroupKer (G H: group) (f: G.1.1 -> H.1.1) (g: G.1.1): U
+  = Path H.1.1 (f g) H.2.1.2.2.1
+
+isGroupIm (G H: group) (f: G.1.1 -> H.1.1) (g: H.1.1): U
+  = pTrunc (fiber G.1.1 H.1.1 f g)
+
 subgroup (G: group) (P: subgroupProp G): group
   = ((subEl G P, isSetSubEl G P), ((op, assoc, id, (lx, rx)), inv, (li, ri))) where
     un: U = subEl G P
@@ -66,8 +75,7 @@ subgroup (G: group) (P: subgroupProp G): group
     unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y =
       subtypeEquality G.1.1 P.1 P.2.1 x y p
     assoc: isAssociative un op =
-      \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z)
-                              ((isAssocGroup G) x.1 y.1 z.1)
+      \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) ((isAssocGroup G) x.1 y.1 z.1)
     id: un = ((idGroup G),P.2.2.1)
     lx (x: un): Path un (op id x) x = unPath (op id x) x ((hasIdGroup G).1 x.1)
     rx (x: un): Path un (op x id) x = unPath (op x id) x ((hasIdGroup G).2 x.1)
@@ -80,7 +88,7 @@ subgroup (G: group) (P: subgroupProp G): group
 ker_prop (G H: group) (phi: grouphom G H)
   : subgroupProp G
   = (prop,level,ident,inv,op) where
-    prop (x: G.1.1): U = Path H.1.1 (phi.1 x) (idGroup H)
+    prop (x: G.1.1): U = isGroupKer G H phi.1 x
     ident: prop (idGroup G) = phi.2.2
     level (x: G.1.1): isProp (prop x) = \(p q: prop x) -> H.1.2 (phi.1 x) (idGroup H) p q
     inv (x: G.1.1) (p : prop x) : prop ((invGroup G) x) =
@@ -95,7 +103,7 @@ ker_prop (G H: group) (phi: grouphom G H)
 im_prop (G H: group) (phi: grouphom G H)
   : subgroupProp H
   = (prop, level, ident, inv, op) where
-    prop (x: H.1.1): U = pTrunc (fiber G.1.1 H.1.1 phi.1 x)
+    prop (x: H.1.1): U = isGroupIm G H phi.1 x
     ident: prop (idGroup H) = inc ((idGroup G),<i>phi.2.2 @ -i)
     level (x: H.1.1): isProp (prop x) = pTruncIsProp (fiber G.1.1 H.1.1 phi.1 x)
     fib (x : H.1.1) : U = fiber G.1.1 H.1.1 phi.1 x
@@ -139,13 +147,6 @@ ChainComplex: U
   * (index: nat -> abgroup)
   * (augment: abgrouphom (index zero) (head abgroup abgrouphom sequence))
   * ((n: nat) -> abgrouphom (index (succ n)) (index n))
-
-homology_group (x: ChainComplex): (n: Z) -> dgroup = split
-   inl x -> unitDGroup
-   inr x -> natElim x where
-   natElim: nat -> dgroup = split
-      zero -> unitDGroup -- TODO:
-      succ x -> unitDGroup -- TODO:
 
 CochainComplex: U
   = (sequence: Seq abgroup abgrouphom)
