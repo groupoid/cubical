@@ -10,6 +10,8 @@ import int
 import set
 import algebra
 import quotient
+import iso_sigma
+import subtype
 
 diff (H: group) (g h: H.1.1) : H.1.1
   = (opGroup H) g ((invGroup H) h)
@@ -52,19 +54,22 @@ subEl (G: group) (P: subgroupProp G): U
   = subtype G.1.1 (subElProp G P)
 
 isSetSubEl (G: group) (P: subgroupProp G): isSet (subEl G P)
-  = undefined
+  = setSig G.1.1 P.1 G.1.2 (\(x : G.1.1) -> propSet (P.1 x) (P.2.1 x))
 
 subgroup (G: group) (P: subgroupProp G): group
   = ((subEl G P,isSetSubEl G P),((op,asso,id,(lx,rx)),inv,(li,ri))) where
     un: U = subEl G P
     op (x y: un): un = ((opGroup G) x.1 y.1,P.2.2.2.2.1 x.1 y.1 x.2 y.2)
-    asso: isAssociative un op = undefined
+    unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y =
+      subtypeEquality G.1.1 P.1 P.2.1 x y p
+    asso: isAssociative un op =
+      \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) (G.2.1.2.1 x.1 y.1 z.1)
     id: un = ((idGroup G),P.2.2.1)
-    lx (x: un): Path un (op id x) x = undefined
-    rx (x: un): Path un (op x id) x = undefined
+    lx (x: un): Path un (op id x) x = unPath (op id x) x (G.2.1.2.2.2.1 x.1)
+    rx (x: un): Path un (op x id) x = unPath (op x id) x (G.2.1.2.2.2.2 x.1)
     inv (x: un): un = ((invGroup G) x.1,P.2.2.2.1 x.1 x.2)
-    li: (x: un) -> Path un (op (inv x) x) id = undefined
-    ri: (x: un) -> Path un (op x (inv x)) id = undefined
+    li (x: un) : Path un (op (inv x) x) id = unPath (op (inv x) x) id (G.2.2.2.1 x.1)
+    ri (x: un) : Path un (op x (inv x)) id = unPath (op x (inv x)) id (G.2.2.2.2 x.1)
 
 sq (A: U) (a b: A) (p q: Path A a b): Square A a a b b (<i>a) (<i>b) p q
   = undefined
