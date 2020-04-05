@@ -4,24 +4,24 @@
    HoTT 6.10 Quotients -}
 
 module quotient where
+import set
 
 -- Prop Quotient A by R
 data quot (A: U) (R: A -> A -> U)
-   = inj (a: A)
-   | quoteq (a b: A) (r: R a b) <i> [ (i=0) -> inj a, (i=1) -> inj b ]
+   = quotient (a: A)
+   | identification (a b: A) (r: R a b) <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
 
 -- Set quotient of A by R
 data setQuot (A: U) (R: A -> A -> U)
    = quotient (a: A)
    | identification (a b: A) (r: R a b) <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
-   | setQuotTrunc (a b : setQuot A R) (p q : Path (setQuot A R) a b)
-      <i j> [ (i = 0) -> p @ j , (i = 1) -> q @ j , (j = 0) -> a , (j = 1) -> b ]
+   | setQuotTrunc (a b : setQuot A R) (p q : Path (setQuot A R) a b) <i j> [ (i=0) -> p@j, (i=1) -> q@j, (j=0) -> a, (j=1) -> b ]
 
 -- Groupoid quotient of A by R
 data grpdQuot (A: U) (R: A -> A -> U)
    = quotient (a: A)
    | identification (a b: A) (r: R a b) <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
-   | setQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b) <i j> [ (i=0) -> p@j , (i=1) -> q@j , (j=0) -> a , (j=1) -> b ]
+   | setQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b) <i j> [ (i=0) -> p@j, (i=1) -> q@j, (j=0) -> a, (j=1) -> b ]
    | grpdQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b) (x y: Path (Path (grpdQuot A R) a b) p q)
       <i j k> [ (i=0) -> x@j@k, (i=1) -> y@j@k, (j=0) -> p@k , (j=1) -> q@k , (k=0) -> a , (k=1) -> b]
 
@@ -102,26 +102,30 @@ setQuotLift2 (A B C : U) (X : A -> A -> U) (Y : B -> B -> U)
       setQuotLift B C Y h (f a) (\(a2 b2 : B) (r : Y a2 b2) -> p a a a2 b2 (reflA a) r)
 
 quoteq' (A: U) (R: A -> A -> U) (a b: A) (r: R a b)
-  : Path (quot A R) (inj a) (inj b) = <i> quoteq {quot A R} a b r @ i
+  : Path (quot A R) (quotient a) (quotient b) = <i> identification {quot A R} a b r @ i
 
 identSetQuot (A: U) (R: A -> A -> U) (a b: A) (r: R a b)
   : Path (setQuot A R) (quotient a) (quotient b) = <i> identification {setQuot A R} a b r @ i
 
--- Test to define circle as a quotient of unit
 {-
+
+-- Test to define circle as a quotient of unit
+
+import s1
+import quotient
 
 RS1 (a b: unit): U = unit
 s1quot : U = quot unit RS1
 
 f1: s1quot -> S1 = split
-  inj _ -> base
-  quoteq a b r @ i -> loop1 @ i
+  quotient _ -> base
+  identification a b r @ i -> loop1 @ i
 
 f2: S1 -> s1quot = split
-  base -> inj tt
-  loop @ i -> quoteq{s1quot} tt tt tt @ i
+  base -> quotient tt
+  loop @ i -> identification {s1quot} tt tt tt @ i
 
-rem: (a: unit) -> Path s1quot (inj tt) (inj a) = split
-   tt -> <i> inj tt
-
+rem: (a: unit) -> Path s1quot (quotient tt) (quotient a) = split
+   tt -> <i> quotient tt
 -}
+
