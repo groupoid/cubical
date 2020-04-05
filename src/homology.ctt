@@ -1,9 +1,10 @@
 {- Homology Theory:
-   - Subgroups;
+   - Subgroups, Normal, Full;
    - Chain Complexes.
-   - Ker, Im;
+   - Ker, Im, B, Z, H;
+   - Isomorphism theorems;
    - Homology Group.
-   Copyright (c) Groupoid Infinity, 2016-2018. -}
+   Copyright (c) Groupoid Infinity, 2016-2020. -}
 
 module homology where
 import int
@@ -85,7 +86,7 @@ subgroup (G: group) (P: subgroupProp G): group
     ri (x: un) : Path un (op x (inv x)) id =
       unPath (op x (inv x)) id ((hasInvGroup G).2 x.1)
 
-ker_prop (G H: group) (phi: grouphom G H)
+kerProp (G H: group) (phi: grouphom G H)
   : subgroupProp G
   = (prop,level,ident,inv,op) where
     prop (x: G.1.1): U = isGroupKer G H phi.1 x
@@ -100,7 +101,7 @@ ker_prop (G H: group) (phi: grouphom G H)
                [ (i = 0) -> <j> phi.2.1 g1 g2 @ -j
                , (i = 1) -> H.2.1.2.2.2.1 (idGroup H) ]
 
-im_prop (G H: group) (phi: grouphom G H)
+imProp (G H: group) (phi: grouphom G H)
   : subgroupProp H
   = (prop, level, ident, inv, op) where
     prop (x: H.1.1): U = isGroupIm G H phi.1 x
@@ -122,17 +123,17 @@ im_prop (G H: group) (phi: grouphom G H)
                     [ (i = 0) -> <j> (opGroup H) (u.2 @ -j) (v.2 @ -j)
                     , (i = 1) -> <_> phi.1 ((opGroup G) u.1 v.1) ]))
 
-Ker (G: abgroup) (H: group) (phi: grouphom (G.1,G.2.1) H): group
-  = subgroup (G.1,G.2.1) (ker_prop (G.1,G.2.1) H phi)
+kerGroup (G: group) (H: group) (phi: grouphom G H): group
+  = subgroup G (kerProp G H phi)
 
-Im (G: group) (H: abgroup) (psi: grouphom G (H.1,H.2.1)): group
-  = subgroup (H.1,H.2.1) (im_prop G (H.1,H.2.1) psi)
+imGroup (G: group) (H: group) (psi: grouphom G H): group
+  = subgroup H (imProp G H psi)
 
-KerImRel (G H: group) (phi: grouphom G H) (x y: H.1.1): U
+relKerIm (G H: group) (phi: grouphom G H) (x y: H.1.1): U
   = pTrunc (fiber G.1.1 H.1.1 phi.1 (diff H x y))
 
-KerImEl (G H: group) (phi: grouphom G H): U
-  = quot H.1.1 (KerImRel G H phi)
+elKerIm (G H: group) (phi: grouphom G H): U
+  = quot H.1.1 (relKerIm G H phi)
 
 mutual
   data Seq (A: U) (B: A -> A -> U)
@@ -184,12 +185,14 @@ conjOne (G H : group) (phi : grouphom G H) (g1 g2 : G.1.1) (p : Path H.1.1 (phi.
            [ (i = 0) -> <j> (opGroup H) ((opGroup H) (phi.1 g1) (p @ -j)) ((invGroup H) (phi.1 g1))
            , (i = 1) -> (hasInvGroup H).2 (phi.1 g1) ]
 
-kernel_is_normal (G H : group) (phi : grouphom G H) : normalSubgroupProp G
+kernelIsNormalSubgroup (G H : group) (phi : grouphom G H)
+  : normalSubgroupProp G
   = (ker, cond) where
-    ker: subgroupProp G = ker_prop G H phi
+    ker: subgroupProp G = kerProp G H phi
     phiConj (g1 g2: G.1.1) (p : Path H.1.1 (phi.1 g2) (idGroup H)) :
       Path H.1.1 (phi.1 (conjugate G g1 g2)) (idGroup H)
       = <i> comp (<_> H.1.1) (conjOne G H phi g1 g2 p @ i)
                  [ (i = 0) -> <j> phiUnfold G H phi g1 g2 @ -j
                  , (i = 1) -> <_> idGroup H ]
     cond: isNormal G ker = (G, phiConj)
+
