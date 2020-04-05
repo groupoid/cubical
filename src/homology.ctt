@@ -34,9 +34,18 @@ subgroupProp (G: group): U
   * (inv: (g: G.1.1) -> prop g -> prop ((invGroup G) g))
   * ((g1 g2: G.1.1) -> prop g1 -> prop g2 -> prop ((opGroup G) g1 g2))
 
+-- Accessors
+subgroupLevel (G : group) (P : subgroupProp G) : (x : G.1.1) -> isProp (P.1 x) = P.2.1
+subgroupId    (G : group) (P : subgroupProp G) : P.1 (idGroup G) = P.2.2.1
+subgroupInv   (G : group) (P : subgroupProp G) : (g: G.1.1) -> P.1 g -> P.1 ((invGroup G) g)
+  = P.2.2.2.1
+subgroupOp (G : group) (P : subgroupProp G) :
+  (g1 g2: G.1.1) -> P.1 g1 -> P.1 g2 -> P.1 ((opGroup G) g1 g2)
+  = P.2.2.2.2
+
 subgroupPropDiff (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
   (u : P.1 g1) (v : P.1 g2) : P.1 (diff G g1 g2) =
-  P.2.2.2.2 g1 ((invGroup G) g2) u (P.2.2.2.1 g2 v)
+  subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
 
 isNormal (G: group) (P: subgroupProp G) : U
   = (X: group)
@@ -62,8 +71,8 @@ isSetSubEl (G: group) (P: subgroupProp G): isSet (subEl G P)
 isGroupHom (G H: group) (f: G.1.1 -> H.1.1): U
   = (g1 g2: G.1.1) -> Path H.1.1 (f ((opGroup G) g1 g2)) ((opGroup H) (f g1) (f g2))
 
-isGroupKer (G H: group) (f: G.1.1 -> H.1.1) (g: G.1.1): U
-  = Path H.1.1 (f g) H.2.1.2.2.1
+isGroupKer (G H: group) (f: G.1.1 -> H.1.1) (x: G.1.1): U
+  = Path H.1.1 (f x) (idGroup H)
 
 isGroupIm (G H: group) (f: G.1.1 -> H.1.1) (g: H.1.1): U
   = pTrunc (fiber G.1.1 H.1.1 f g)
@@ -71,21 +80,21 @@ isGroupIm (G H: group) (f: G.1.1 -> H.1.1) (g: H.1.1): U
 subgroup (G: group) (P: subgroupProp G): group
   = ((subEl G P, isSetSubEl G P), ((op, assoc, id, (lx, rx)), inv, (li, ri))) where
     un: U = subEl G P
-    op (x y: un): un = ((opGroup G) x.1 y.1, P.2.2.2.2 x.1 y.1 x.2 y.2)
+    op (x y: un): un = ((opGroup G) x.1 y.1, subgroupOp G P x.1 y.1 x.2 y.2)
     unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y =
       subtypeEquality G.1.1 P.1 P.2.1 x y p
     assoc: isAssociative un op =
       \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) ((isAssocGroup G) x.1 y.1 z.1)
-    id: un = ((idGroup G),P.2.2.1)
+    id: un = ((idGroup G), subgroupId G P)
     lx (x: un): Path un (op id x) x = unPath (op id x) x ((hasIdGroup G).1 x.1)
     rx (x: un): Path un (op x id) x = unPath (op x id) x ((hasIdGroup G).2 x.1)
-    inv (x: un): un = ((invGroup G) x.1, P.2.2.2.1 x.1 x.2)
+    inv (x: un): un = ((invGroup G) x.1, subgroupInv G P x.1 x.2)
     li (x: un) : Path un (op (inv x) x) id =
       unPath (op (inv x) x) id ((hasInvGroup G).1 x.1)
     ri (x: un) : Path un (op x (inv x)) id =
       unPath (op x (inv x)) id ((hasInvGroup G).2 x.1)
 
-ker_prop (G H: group) (phi: grouphom G H)
+kerProp (G H: group) (phi: grouphom G H)
   : subgroupProp G
   = (prop,level,ident,inv,op) where
     prop (x: G.1.1): U = isGroupKer G H phi.1 x
@@ -98,13 +107,13 @@ ker_prop (G H: group) (phi: grouphom G H)
     op (g1 g2: G.1.1) (p : prop g1) (q : prop g2) : prop ((opGroup G) g1 g2) =
       <i> comp (<_> H.1.1) ((opGroup H) (p @ i) (q @ i))
                [ (i = 0) -> <j> phi.2.1 g1 g2 @ -j
-               , (i = 1) -> H.2.1.2.2.2.1 (idGroup H) ]
+               , (i = 1) -> (hasIdGroup H).1 (idGroup H) ]
 
-im_prop (G H: group) (phi: grouphom G H)
+imProp (G H: group) (phi: grouphom G H)
   : subgroupProp H
   = (prop, level, ident, inv, op) where
     prop (x: H.1.1): U = isGroupIm G H phi.1 x
-    ident: prop (idGroup H) = inc ((idGroup G),<i>phi.2.2 @ -i)
+    ident: prop (idGroup H) = inc ((idGroup G), <i> phi.2.2 @ -i)
     level (x: H.1.1): isProp (prop x) = pTruncIsProp (fiber G.1.1 H.1.1 phi.1 x)
     fib (x : H.1.1) : U = fiber G.1.1 H.1.1 phi.1 x
     inv (x: H.1.1) : prop x -> prop ((invGroup H) x) =
@@ -123,10 +132,10 @@ im_prop (G H: group) (phi: grouphom G H)
                     , (i = 1) -> <_> phi.1 ((opGroup G) u.1 v.1) ]))
 
 Ker (G: abgroup) (H: group) (phi: grouphom (G.1,G.2.1) H): group
-  = subgroup (G.1,G.2.1) (ker_prop (G.1,G.2.1) H phi)
+  = subgroup (G.1, G.2.1) (kerProp (G.1, G.2.1) H phi)
 
 Im (G: group) (H: abgroup) (psi: grouphom G (H.1,H.2.1)): group
-  = subgroup (H.1,H.2.1) (im_prop G (H.1,H.2.1) psi)
+  = subgroup (H.1, H.2.1) (imProp G (H.1, H.2.1) psi)
 
 KerImRel (G H: group) (phi: grouphom G H) (x y: H.1.1): U
   = pTrunc (fiber G.1.1 H.1.1 phi.1 (diff H x y))
@@ -184,12 +193,23 @@ conjOne (G H : group) (phi : grouphom G H) (g1 g2 : G.1.1) (p : Path H.1.1 (phi.
            [ (i = 0) -> <j> (opGroup H) ((opGroup H) (phi.1 g1) (p @ -j)) ((invGroup H) (phi.1 g1))
            , (i = 1) -> (hasInvGroup H).2 (phi.1 g1) ]
 
-kernel_is_normal (G H : group) (phi : grouphom G H) : normalSubgroupProp G
+kernelIsNormal (G H : group) (phi : grouphom G H) : normalSubgroupProp G
   = (ker, cond) where
-    ker: subgroupProp G = ker_prop G H phi
+    ker: subgroupProp G = kerProp G H phi
     phiConj (g1 g2: G.1.1) (p : Path H.1.1 (phi.1 g2) (idGroup H)) :
       Path H.1.1 (phi.1 (conjugate G g1 g2)) (idGroup H)
       = <i> comp (<_> H.1.1) (conjOne G H phi g1 g2 p @ i)
                  [ (i = 0) -> <j> phiUnfold G H phi g1 g2 @ -j
                  , (i = 1) -> <_> idGroup H ]
     cond: isNormal G ker = (G, phiConj)
+
+factorProp (G : group) (P : subgroupProp G) : G.1.1 -> G.1.1 -> U
+  = \(x y : G.1.1) -> P.1 (diff G x y)
+
+factor (G : group) (P : subgroupProp G) : U
+  = setquot G.1.1 (factorProp G P)
+
+factorIncl (G : group) (P : subgroupProp G) (x : G.1.1) : factor G P
+  = quotient x
+
+--factorMul

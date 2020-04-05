@@ -20,6 +20,90 @@ data setquot (A: U) (R: A -> A -> U)
    | identification (a b: A) (r: R a b)
               <i> [ (i=0) -> quotient a,
                     (i=1) -> quotient b ]
+   | setQuotTrunc (a b : setquot A R) (p q : Path (setquot A R) a b)
+      <i j> [ (i = 0) -> p @ j
+            , (i = 1) -> q @ j
+            , (j = 0) -> a
+            , (j = 1) -> b ]
+
+setquotId (A : U) (R : A -> A -> U) (a b : A) (r : R a b) :
+    Path (setquot A R) (quotient a) (quotient b)
+  = <i> identification{setquot A R} a b r @ i
+
+setquotIsSet (A : U) (R : A -> A -> U) : isSet (setquot A R) =
+  \(a b : setquot A R) (p q : Path (setquot A R) a b) ->
+    <i j> setQuotTrunc{setquot A R} a b p q @ i @ j
+
+setquotLift (A B : U) (R : A -> A -> U) (H : isSet B) (f : A -> B)
+  (G : (a b : A) -> R a b -> Path B (f a) (f b)) : setquot A R -> B = split
+  quotient x -> f x
+  identification a b r @ i -> G a b r @ i
+  setQuotTrunc a b p q @ i j ->
+    H (lift a) (lift b) (<k> lift (p @ k)) (<k> lift (q @ k)) @ i @ j
+    where
+      lift : setquot A R -> B = setquotLift A B R H f G
+
+lemPropF (A : U) (B : A -> U) (h : (x : A) -> isProp (B x))
+  (x y : A) (p : Path A x y) (u : B x) (v : B y) : PathP (<i> B (p @ i)) u v
+  = substPathP (B x) (B y) (<i> B (p @ i)) u v q
+  where
+    u' : B y = transport (<i> B (p @ i)) u
+    q : Path (B y) u' v = h y u' v
+
+setquotLem (A : U) (P : A -> U) (sP : (x : A) -> isSet (P x)) (a : A) :
+           (b : A) (p q : Path A a b) (r : Path (Path A a b) p q) (a1 : P a) (b1 : P b)
+           (p1 : PathP (<i> P (p @ i)) a1 b1) (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+           PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1 =
+  J A a (\(b : A) (p : Path A a b) -> (q : Path A a b)
+          (r : Path (Path A a b) p q) (a1 : P a) (b1 : P b)
+          (p1 : PathP (<i> P (p @ i)) a1 b1) (q1 : PathP (<i>P (q @ i)) a1 b1) ->
+          PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1) rem
+  where
+    rem : (q : Path A a a) (r : Path (Path A a a) (refl A a) q)
+          (a1 b1 : P a) (p1 : Path (P a) a1 b1) (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+      PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1 =
+      J (Path A a a) (refl A a)
+        (\(q : Path A a a) (r : Path (Path A a a) (refl A a) q) ->
+          (a1 b1 : P a) (p1 : Path (P a) a1 b1) (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+          PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1) (sP a)
+
+setquotElim (A : U) (R : A -> A -> U) (B : setquot A R -> U)
+            (sB : (x : setquot A R) -> isSet (B x)) (f : (x : A) -> B (quotient x))
+            (g : (a b : A) (r : R a b) -> PathP (<i> B (setquotId A R a b r @ i)) (f a) (f b)) :
+            (x : setquot A R) -> B x = split
+  quotient a -> f a
+  identification a b r @ i -> g a b r @ i
+  setQuotTrunc a b p q @ i j ->
+    setquotLem (setquot A R) B sB a b p q
+               (<i j> setQuotTrunc{setquot A R} a b p q @ i @ j)
+               (f' a) (f' b) (<k> f' (p @ k)) (<k> f' (q @ k)) @ i @ j
+    where
+      f' : (z : setquot A R) -> B z = setquotElim A R B sB f g
+
+setquotIndProp (A : U) (R : A -> A -> U) (B : setquot A R -> U)
+  (f : (x : A) -> B (quotient x)) (g : (x : setquot A R) -> isProp (B x)) :
+  (x : setquot A R) -> B x =
+  setquotElim A R B
+    (\(x : setquot A R) -> propSet (B x) (g x)) f
+    (\(a b : A) (r : R a b) ->
+      lemPropF (setquot A R) B g (quotient a) (quotient b)
+               (setquotId A R a b r) (f a) (f b))
+
+setquotLift2 (A B C : U) (X : A -> A -> U) (Y : B -> B -> U)
+  (reflA : (a : A) -> X a a) (reflB : (b : B) -> Y b b) (h : isSet C) (f : A -> B -> C)
+  (p : (a1 b1 : A) (a2 b2 : B) -> X a1 b1 -> Y a2 b2 -> Path C (f a1 a2) (f b1 b2)) :
+  setquot A X -> setquot B Y -> C =
+  setquotLift A (setquot B Y -> C) X
+    (setPi (setquot B Y) (\(_ : setquot B Y) -> C) (\(_ : setquot B Y) -> h))
+    lift
+    (\(a1 b1 : A) (r : X a1 b1) ->
+      funext (setquot B Y) C (lift a1) (lift b1)
+        (setquotIndProp B Y (\(x : setquot B Y) -> Path C (lift a1 x) (lift b1 x))
+                        (\(x : B) -> p a1 b1 x x r (reflB x))
+                        (\(x : setquot B Y) -> h (lift a1 x) (lift b1 x))))
+  where
+    lift (a : A) : setquot B Y -> C =
+      setquotLift B C Y h (f a) (\(a2 b2 : B) (r : Y a2 b2) -> p a a a2 b2 (reflA a) r)
 
 quoteq' (A: U) (R: A -> A -> U) (a b: A) (r: R a b)
   : Path (quot A R) (inj a) (inj b) = <i> quoteq {quot A R} a b r @ i
