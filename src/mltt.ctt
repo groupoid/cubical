@@ -40,8 +40,7 @@ trans   (A B: U) (p: Path U A B) (a : A): B = comp p a []
 -- Theorems:
 -- 1) Diagonal Version of J
 J         (A: U) (x: A) (C: D A) (d: C x x (reflect A x))
-          (y: A) (p: Equ A x y): C x y p = subst (singl A x) T (eta A x) (y, p)
-                                                 (contr A x y p) d where
+          (y: A) (p: Equ A x y): C x y p = subst (singl A x) T (eta A x) (y, p) (contr A x y p) d where
                      T (z: singl A x): U = C x (z.1) (z.2)
 
 -- 2) Computational Rules
