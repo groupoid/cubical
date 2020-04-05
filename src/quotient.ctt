@@ -9,21 +9,31 @@ import set
 -- Prop Quotient A by R
 data propQuot (A: U) (R: A -> A -> U)
    = quotient (a: A)
-   | identification (a b: A) (r: R a b) <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
+   | identification (a b: A) (r: R a b)
+     <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
 
 -- Set quotient of A by R
 data setQuot (A: U) (R: A -> A -> U)
    = quotient (a: A)
-   | identification (a b: A) (r: R a b) <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
-   | setQuotTrunc (a b : setQuot A R) (p q : Path (setQuot A R) a b) <i j> [ (i=0) -> p @ j, (i=1) -> q @ j, (j=0) -> a, (j=1) -> b ]
+   | identification (a b: A) (r: R a b)
+     <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
+   | setQuotTrunc (a b : setQuot A R) (p q : Path (setQuot A R) a b)
+     <i j> [ (i=0) -> p @ j, (i=1) -> q @ j,
+             (j=0) -> a, (j=1) -> b ]
 
 -- Groupoid quotient of A by R
 data grpdQuot (A: U) (R: A -> A -> U)
    = quotient (a: A)
-   | identification (a b: A) (r: R a b) <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
-   | setQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b) <i j> [ (i=0) -> p @ j,  (i=1) -> q @ j, (j=0) -> a, (j=1) -> b ]
-   | grpdQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b) (x y: Path (Path (grpdQuot A R) a b) p q)
-      <i j k> [ (i=0) -> x @ j @ k, (i=1) -> y @ j @ k, (j=0) -> p@k , (j=1) -> q@k , (k=0) -> a , (k=1) -> b]
+   | identification (a b: A) (r: R a b)
+     <i> [ (i=0) -> quotient a, (i=1) -> quotient b ]
+   | setQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b)
+     <i j> [ (i=0) -> p @ j,  (i=1) -> q @ j,
+             (j=0) -> a, (j=1) -> b ]
+   | grpdQuotTrunc (a b : grpdQuot A R) (p q : Path (grpdQuot A R) a b)
+     (x y: Path (Path (grpdQuot A R) a b) p q)
+     <i j k> [ (i=0) -> x @ j @ k, (i=1) -> y @ j @ k,
+               (j=0) -> p@k , (j=1) -> q@k ,
+               (k=0) -> a , (k=1) -> b ]
 
 propQuotId (A: U) (R: A -> A -> U) (a b: A) (r: R a b)
   : Path (propQuot A R) (quotient a) (quotient b)
