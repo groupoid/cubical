@@ -102,7 +102,7 @@ isFBundle2 (B: U) (p: B -> U) (F: U): U
   * ((x: V) -> Path U (p (v.1 x)) F)
 
 -- Definition (3) Non-Dependent
-im1 (A B: U) (f: A -> B): U = (b: B) * pTrunc ((a:A) * Path B (f a) b)
+im1 (A B: U) (f: A -> B): U = (b: B) * propTrunc ((a:A) * Path B (f a) b)
 BAut (F: U): U = im1 unit U (\(x: unit) -> F)
 unitIm1 (A B: U) (f: A -> B): im1 A B f -> B = \(x: im1 A B f) -> x.1
 unitBAut (F: U): BAut F -> U = unitIm1 unit U (\(x: unit) -> F)

@@ -78,7 +78,7 @@ isGroupKer (G H: group) (f: G.1.1 -> H.1.1) (x: G.1.1): U
   = Path H.1.1 (f x) (idGroup H)
 
 isGroupIm (G H: group) (f: G.1.1 -> H.1.1) (g: H.1.1): U
-  = pTrunc (fiber G.1.1 H.1.1 f g)
+  = propTrunc (fiber G.1.1 H.1.1 f g)
 
 subgroup (G: group) (P: subgroupProp G): group
   = ((subEl G P, isSetSubEl G P), ((op, assoc, id, (lx, rx)), inv, (li, ri))) where
@@ -117,17 +117,17 @@ imProp (G H: group) (phi: grouphom G H)
   = (prop, level, ident, inv, op) where
     prop (x: H.1.1): U = isGroupIm G H phi.1 x
     ident: prop (idGroup H) = inc ((idGroup G), <i> phi.2.2 @ -i)
-    level (x: H.1.1): isProp (prop x) = pTruncIsProp (fiber G.1.1 H.1.1 phi.1 x)
+    level (x: H.1.1): isProp (prop x) = propTruncIsProp (fiber G.1.1 H.1.1 phi.1 x)
     fib (x : H.1.1) : U = fiber G.1.1 H.1.1 phi.1 x
     inv (x: H.1.1) : prop x -> prop ((invGroup H) x) =
-      pTruncLift (fib x) (fib ((invGroup H) x))
+      propTruncLift (fib x) (fib ((invGroup H) x))
         (\(u : fib x) ->
           ((invGroup G) u.1,
            <i> comp (<_> H.1.1) ((invGroup H) (u.2 @ i))
                     [ (i = 0) -> <_> (invGroup H) x
                     , (i = 1) -> <j> lem_grouphom_inv G H phi u.1 @ -j ]))
     op (g1 g2: H.1.1) : prop g1 -> prop g2 -> prop ((opGroup H) g1 g2) =
-      pTruncBinLift (fib g1) (fib g2) (fib ((opGroup H) g1 g2))
+      propTruncBinLift (fib g1) (fib g2) (fib ((opGroup H) g1 g2))
         (\(u : fib g1) (v : fib g2) ->
           ((opGroup G) u.1 v.1,
            <i> comp (<_> H.1.1) (phi.2.1 u.1 v.1 @ -i)
@@ -141,7 +141,7 @@ imGroup (G: group) (H: group) (psi: grouphom G H): group
   = subgroup H (imProp G H psi)
 
 relKerIm (G H: group) (phi: grouphom G H) (x y: H.1.1): U
-  = pTrunc (fiber G.1.1 H.1.1 phi.1 (diff H x y))
+  = propTrunc (fiber G.1.1 H.1.1 phi.1 (diff H x y))
 
 elKerIm (G H: group) (phi: grouphom G H): U
   = propQuot H.1.1 (relKerIm G H phi)

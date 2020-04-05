@@ -8,67 +8,64 @@ module trunc where
 import path
 import prop
 
-data pTrunc (A : U) -- (-1)-trunc, mere proposition truncation
+-- (-1)-trunc, mere proposition truncation
+data propTrunc (A : U)
   = inc (a : A)
-  | inh (x y : pTrunc A) <i>
-        [ (i=0) -> x,
-          (i=1) -> y ]
+  | squash (x y : propTrunc A)
+    <i> [ (i = 0) -> x , (i = 1) -> y ]
 
-pTruncIsProp (A : U) : isProp (pTrunc A) =
- \ (x y : pTrunc A) -> <i> inh{pTrunc A} x y @ i
+-- (0)-trunc, set truncation
+data setTrunc (A : U)
+  = inc (a : A)
+  | squash (a b: setTrunc A) (p q: Path (setTrunc A) a b)
+    <i j> [ (i = 0) -> p @ j , (i = 1) -> q @ j ,
+            (j = 0) -> a ,     (j = 1) -> b ]
 
-pTruncRec (A B : U) (pP : isProp B) (f : A -> B) : pTrunc A -> B = split
+-- (1)-trunc, groupoid truncation
+data grpdTrunc (A : U)
+  = inc (a : A)
+  | squash (a b : grpdTrunc A) (p q : Path (grpdTrunc A) a b)
+    (r s: Path (Path (grpdTrunc A) a b) p q)
+    <i j k> [ (i = 0) -> r @ j @ k , (i = 1) -> s @ j @ k ,
+              (j = 0) -> p @ k ,     (j = 1) -> q @ k ,
+              (k = 0) -> a ,         (k = 1) -> b ]
+
+propTruncIsProp (A : U) : isProp (propTrunc A) =
+ \ (x y : propTrunc A) -> <i> squash {propTrunc A} x y @ i
+
+propTruncRec (A B : U) (pP : isProp B) (f : A -> B) : propTrunc A -> B = split
   inc a -> f a
-  inh x y @ i -> pP (pTruncRec A B pP f x) (pTruncRec A B pP f y) @ i
+  squash x y @ i -> pP (propTruncRec A B pP f x) (propTruncRec A B pP f y) @ i
 
-pTruncLift (A B : U) (f : A -> B) : pTrunc A -> pTrunc B = split
+propTruncLift (A B : U) (f : A -> B) : propTrunc A -> propTrunc B = split
   inc a -> inc (f a)
-  inh x y @ i -> pTruncIsProp B (pTruncLift A B f x) (pTruncLift A B f y) @ i
+  squash x y @ i -> propTruncIsProp B (propTruncLift A B f x) (propTruncLift A B f y) @ i
 
-pTruncBinLift (A B C : U) (f : A -> B -> C) : pTrunc A -> pTrunc B -> pTrunc C = split
-  inc a -> pTruncLift B C (f a)
-  inh x y @ i -> \(b : pTrunc B) ->
-    pTruncIsProp C (pTruncBinLift A B C f x b)
-                   (pTruncBinLift A B C f y b) @ i
+propTruncBinLift (A B C : U) (f : A -> B -> C) : propTrunc A -> propTrunc B -> propTrunc C = split
+  inc a -> propTruncLift B C (f a)
+  squash x y @ i -> \(b : propTrunc B) ->
+    propTruncIsProp C (propTruncBinLift A B C f x b)
+                   (propTruncBinLift A B C f y b) @ i
 
-pTruncElim (A : U) (B : (pTrunc A) -> U)
-           (pP : (x : pTrunc A) -> isProp (B x))
+propTruncElim (A : U) (B : (propTrunc A) -> U)
+           (pP : (x : propTrunc A) -> isProp (B x))
            (f : (a : A) -> B (inc a))
-           : (x : pTrunc A) -> B x = split
+           : (x : propTrunc A) -> B x = split
   inc a -> f a
-  inh x y @ i ->
-    lemPropF (pTrunc A) B pP x y
-      (<j> inh{pTrunc A} x y @ j)
-      (pTruncElim A B pP f x)
-      (pTruncElim A B pP f y)
+  squash x y @ i ->
+    lemPropF (propTrunc A) B pP x y
+      (<j> squash {propTrunc A} x y @ j)
+      (propTruncElim A B pP f x)
+      (propTruncElim A B pP f y)
     @ i
 
-data sTrunc (A : U) -- (0)-trunc, set truncation
-  = inc (a : A)
-  | line (a b: sTrunc A) (p q: Path (sTrunc A) a b) <i j>
-        [ (i=0) -> p @ j,
-          (i=1) -> q @ j,
-          (j=0) -> a,
-          (j=1) -> b ]
+sTr (A : U) (a b : setTrunc A) (p q: Path (setTrunc A) a b) : Path (Path (setTrunc A) a b) p q =
+  <i j> squash {setTrunc A} a b p q @ i @ j
 
-
-sTr (A : U) (a b : sTrunc A) (p q: Path (sTrunc A) a b) : Path (Path (sTrunc A) a b) p q =
-  <i j> line {sTrunc A} a b p q @ i @ j
-
-sTruncRec (A: U) (B: U) (bS: isSet B) (f: A -> B): sTrunc A -> B = split
+setTruncRec (A: U) (B: U) (bS: isSet B) (f: A -> B): setTrunc A -> B = split
   inc a -> f a
-  line a b p q @ i j -> (bS (sTruncRec A B bS f a)
-                              (sTruncRec A B bS f b)
-                              (<k> sTruncRec A B bS f (p @ k))
-                              (<k> sTruncRec A B bS f (q @ k))) @ i @ j
+  squash a b p q @ i j -> (bS (setTruncRec A B bS f a)
+                              (setTruncRec A B bS f b)
+                              (<k> setTruncRec A B bS f (p @ k))
+                              (<k> setTruncRec A B bS f (q @ k))) @ i @ j
 
-data gTrunc (A : U) -- (1)-trunc, groupoid truncation
-  = inc (a : A)
-  | squashC (a b : gTrunc A) (p q : Path (gTrunc A) a b)
-            (r s: Path (Path (gTrunc A) a b) p q) <i j k>
-       [ (i=0) -> r @ j @ k
-       , (i=1) -> s @ j @ k
-       , (j=0) -> p @ k
-       , (j=1) -> q @ k
-       , (k=0) -> a
-       , (k=1) -> b]

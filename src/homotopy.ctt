@@ -17,8 +17,8 @@ homogeneous (A: U): U
 
 -- Definition. Homotopy Groups of Spheres : \pi_{n}S^{m} = ||\Omega^{n}(S^{m})||_0
 piS (n: nat): (m: nat) -> U = split
-   zero   -> sTrunc (space (omega n (bool,false)))
-   succ x -> sTrunc (space (omega n (Sn (succ x),north)))
+   zero   -> setTrunc (space (omega n (bool,false)))
+   succ x -> setTrunc (space (omega n (Sn (succ x),north)))
 
 -- Theorem. Loop Space of S1 equals to Z : \Omega^{1}(S^{1}) = Z
 encode (x:S1) (p:Path S1 base x)

@@ -52,7 +52,7 @@ transEquiv' (A B: U) (p: Path U B A): equiv B A = subst U (\(Y: U) -> equiv Y A)
 
 
 isSurjective (A B: U) (f: A -> B): U
-  = (b: B) * pTrunc (fiber A B f b)
+  = (b: B) * propTrunc (fiber A B f b)
 
 surjective (A B: U): U
   = (f: A -> B)
