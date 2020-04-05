@@ -282,48 +282,65 @@ lem_group_cancellative (g: group)
   : isCancellative g.1.1 (opGroup g)
   = (lem_group_lcancellative g, lem_group_rcancellative g)
 
--- (a · b)⁻¹ ≡ a⁻¹ · b⁻¹
+-- (a · b)⁻¹ = b⁻¹ · a⁻¹
+lem_group_inv_dist (g: group) (a b: g.1.1)
+  : Path g.1.1 (invGroup g (opGroup g a b)) (opGroup g (invGroup g b) (invGroup g a))
+  = let
+    a': g.1.1 = invGroup g a
+    b': g.1.1 = invGroup g b
+    x: g.1.1 = opGroup g a b
+    x': g.1.1 = invGroup g (opGroup g a b)
+    p0: Path g.1.1 (opGroup g x' a) b'
+      = <i> comp (<_> g.1.1) (opGroup g ((hasInvGroup g).1 (opGroup g a b) @ i) b')
+        [ (i = 1) -> (hasIdGroup g).1 b'
+        , (i = 0) -> <j> comp (<_> g.1.1) (isAssocGroup g x' x b' @ -j)
+          [ (j = 0) -> <_> opGroup g (opGroup g x' x) b'
+          , (j = 1) -> <k> comp (<_> g.1.1) (opGroup g x' (isAssocGroup g a b b' @ -k))
+            [ (k = 0) -> <_> opGroup g x' (opGroup g x b')
+            , (k = 1) -> <l> comp (<_> g.1.1)
+                              (opGroup g x' (opGroup g a ((hasInvGroup g).2 b @ l)))
+              [ (l = 0) -> <_> opGroup g x' (opGroup g a (opGroup g b b'))
+              , (l = 1) -> <m> opGroup g x' ((hasIdGroup g).2 a @ m) ]]]] in
+  <i> comp (<_> g.1.1) (opGroup g (p0 @ i) a')
+           [ (i = 1) -> <_> opGroup g b' a'
+           , (i = 0) -> <j> comp (<_> g.1.1) (isAssocGroup g x' a a' @ -j)
+             [ (j = 0) -> <_> opGroup g (opGroup g x' a) a'
+             , (j = 1) -> <k> comp (<_> g.1.1) (opGroup g x' ((hasInvGroup g).2 a @ k))
+               [ (k = 0) -> <_> opGroup g x' (opGroup g a a')
+               , (k = 1) -> (hasIdGroup g).2 x' ]]]
+
+-- a⁻¹ · b⁻¹ = (a · b)⁻¹
 lem_cgroup_inv_dist (g: abgroup) (a b: g.1.1)
   : Path g.1.1 (opCGroup g (invCGroup g a) (invCGroup g b)) (invCGroup g (opCGroup g a b))
-  = let
-    a': g.1.1 = invCGroup g a
-    b': g.1.1 = invCGroup g b
-    x: g.1.1 = opCGroup g a b
-    x': g.1.1 = invCGroup g (opCGroup g a b)
-    p0: Path g.1.1 (opCGroup g x' a) b'
-      = <i> comp (<_> g.1.1) (opCGroup g ((hasInvCGroup g).1 (opCGroup g a b) @ i) b')
-        [ (i = 1) -> (hasIdCGroup g).1 b'
-        , (i = 0) -> <j> comp (<_> g.1.1) (isAssocCGroup g x' x b' @ -j)
-          [ (j = 0) -> <_> opCGroup g (opCGroup g x' x) b'
-          , (j = 1) -> <k> comp (<_> g.1.1) (opCGroup g x' (isAssocCGroup g a b b' @ -k))
-            [ (k = 0) -> <_> opCGroup g x' (opCGroup g x b')
-            , (k = 1) -> <l> comp (<_> g.1.1)
-                              (opCGroup g x' (opCGroup g a ((hasInvCGroup g).2 b @ l)))
-              [ (l = 0) -> <_> opCGroup g x' (opCGroup g a (opCGroup g b b'))
-              , (l = 1) -> <m> opCGroup g x' ((hasIdCGroup g).2 a @ m) ]]]]
-    p1: Path g.1.1 x' (opCGroup g b' a')
-      = <i> comp (<_> g.1.1) (opCGroup g (p0 @ i) a')
-        [ (i = 1) -> <_> opCGroup g b' a'
-        , (i = 0) -> <j> comp (<_> g.1.1) (isAssocCGroup g x' a a' @ -j)
-          [ (j = 0) -> <_> opCGroup g (opCGroup g x' a) a'
-          , (j = 1) -> <k> comp (<_> g.1.1) (opCGroup g x' ((hasInvCGroup g).2 a @ k))
-            [ (k = 0) -> <_> opCGroup g x' (opCGroup g a a')
-            , (k = 1) -> (hasIdCGroup g).2 x' ]]]
-  in <i> comp (<_> g.1.1) (p1 @ -i)
+  = <i> comp (<_> g.1.1) (lem_group_inv_dist (g.1, g.2.1) a b @ -i)
     [ (i = 0) -> isCommCGroup g (invCGroup g b) (invCGroup g a)
     , (i = 1) -> <_> invCGroup g (opCGroup g a b) ]
 
--- e⁻¹ ≡ e
+-- e⁻¹ = e
 lemma_group_inv_id (g : group)
   : Path g.1.1 (invGroup g (idGroup g)) (idGroup g)
   = <i> comp (<_> g.1.1) ((hasIdGroup g).2 (invGroup g (idGroup g)) @ -i)
     [ (i = 0) -> <_> invGroup g (idGroup g)
     , (i = 1) -> (hasInvGroup g).1 (idGroup g) ]
 
--- e⁻¹ ≡ e (abelian groups)
+-- e⁻¹ = e (abelian groups)
 lemma_cgroup_inv_id (g: abgroup)
   : Path g.1.1 (invCGroup g (idCGroup g)) (idCGroup g)
   = lemma_group_inv_id (g.1, g.2.1)
+
+-- x⁻¹⁻¹ = x⁻¹⁻¹ * 1 = x⁻¹⁻¹ * (x⁻¹ * x) = (x⁻¹⁻¹ * x⁻¹) * x = 1 * x = x
+invInvGroup (G : group) (x : G.1.1) : Path G.1.1 (invGroup G (invGroup G x)) x =
+  <i> comp (<_> G.1.1) (lem @ i)
+           [ (i = 0) -> (hasIdGroup G).2 (inv (inv x))
+           , (i = 1) -> (hasIdGroup G).1 x ]
+  where
+    op (a b : G.1.1) : G.1.1 = opGroup G a b
+    inv (a : G.1.1) : G.1.1 = invGroup G a
+    e : G.1.1 = idGroup G
+    lem : Path G.1.1 (op (inv (inv x)) e) (op e x)
+      = <i> comp (<_> G.1.1) (isAssocGroup G (inv (inv x)) (inv x) x @ i)
+                 [ (i = 0) -> <j> op (inv (inv x)) ((hasInvGroup G).1 x @ j)
+                 , (i = 1) -> <j> op ((hasInvGroup G).1 (inv x) @ j) x ]
 
 -- Homomorphisms
 

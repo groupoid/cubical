@@ -45,8 +45,11 @@ subgroupOp (G : group) (P : subgroupProp G) :
   = P.2.2.2.2
 
 subgroupPropDiff (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
-  (u : P.1 g1) (v : P.1 g2) : P.1 (diff G g1 g2) =
-  subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
+  (u : P.1 g1) (v : P.1 g2) : P.1 (diff G g1 g2)
+  = subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
+
+subgroupSelfDiff (G : group) (P : subgroupProp G) (g : G.1.1) : P.1 (diff G g g)
+  = transport (<i> P.1 ((hasInvGroup G).2 g @ -i)) (subgroupId G P)
 
 isNormal (G: group) (P: subgroupProp G) : U
   = (X: group)
@@ -205,11 +208,83 @@ kernelIsNormalSubgroup (G H : group) (phi : grouphom G H)
                  , (i = 1) -> <_> idGroup H ]
     cond: isNormal G ker = (G, phiConj)
 
-factorProp (G : group) (P : subgroupProp G) : G.1.1 -> G.1.1 -> U
-  = \(x y : G.1.1) -> P.1 (diff G x y)
+normalSubgroupLem (G : group) (P : normalSubgroupProp G)
+  (a b : G.1.1) (p : P.1.1 (diff G a b)) : P.1.1 (opGroup G (invGroup G a) b)
+  = undefined -- TODO
 
-factor (G : group) (P : subgroupProp G) : U
+factorProp (G : group) (P : normalSubgroupProp G) : G.1.1 -> G.1.1 -> U
+  = \(x y : G.1.1) -> P.1.1 (diff G x y)
+
+factor (G : group) (P : normalSubgroupProp G) : U
   = setquot G.1.1 (factorProp G P)
 
-factorIncl (G : group) (P : subgroupProp G) (x : G.1.1) : factor G P
+factorIncl (G : group) (P : normalSubgroupProp G) (x : G.1.1) : factor G P
   = quotient x
+
+factorMul (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> factor G P
+  = setquotLift2 G.1.1 G.1.1 (factor G P) (factorProp G P) (factorProp G P)
+    (subgroupSelfDiff G P.1) (subgroupSelfDiff G P.1)
+    (setquotIsSet G.1.1 (factorProp G P))
+    (\(a b : G.1.1) -> factorIncl G P (op a b))
+    (\(a1 b1 a2 b2 : G.1.1) (p : P.1.1 (diff G a1 b1)) (q : P.1.1 (diff G a2 b2)) ->
+      setquotId G.1.1 (factorProp G P) (op a1 a2) (op b1 b2)
+        transport (<i> P.1.1 (lem6 a1 b1 a2 b2 @ -i))
+                  (P.2.2 b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2)))
+                    (subgroupOp G P.1 (inv (op (inv a1) b1)) (diff G a2 b2)
+                      (subgroupInv G P.1 (op (inv a1) b1)
+                        (normalSubgroupLem G P a1 b1 p)) q)))
+  where
+    --   ((a1 * a2) * (b1 * b2)⁻¹)                    (A)
+    -- = ((a1 * a2) * (b2⁻¹ * b1⁻¹))                     
+    -- = 1 * ((a1 * a2) * (b2⁻¹ * b1⁻¹))                 
+    -- = (b1 * b1⁻¹) * ((a1 * a2) * (b2⁻¹ * b1⁻¹))    (B)
+    -- = b1 * (b1⁻¹ * ((a1 * a2) * (b2⁻¹ * b1⁻¹)))       
+    -- = b1 * (b1⁻¹ * (((a1 * a2) * b2⁻¹) * b1⁻¹))       
+    -- = b1 * ((b1⁻¹ * ((a1 * a2) * b2⁻¹)) * b1⁻¹)    (C)
+    -- = b1 * (((b1⁻¹ * (a1 * a2)) * b2⁻¹) * b1⁻¹)       
+    -- = b1 * ((((b1⁻¹ * a1) * a2) * b2⁻¹) * b1⁻¹)       
+    -- = b1 * (((b1⁻¹ * a1) * (a2 * b2⁻¹)) * b1⁻¹)    (D)
+    -- = b1 * (((b1⁻¹ * a1⁻¹⁻¹) * (a2 * b2⁻¹)) * b1⁻¹)   
+    -- = b1 * (((a1⁻¹ * b1)⁻¹ * (a2 * b2⁻¹)) * b1⁻¹)  (E)
+    -- = (b1 * ((a1⁻¹ * b1)⁻¹ * (a2 * b2⁻¹))) * b1⁻¹  (F)
+    op (a b : G.1.1) : G.1.1 = opGroup G a b
+    inv (a : G.1.1) : G.1.1 = invGroup G a
+    A (a1 b1 a2 b2 : G.1.1) : G.1.1
+      = diff G (op a1 a2) (op b1 b2)
+    B (a1 b1 a2 b2 : G.1.1) : G.1.1
+      = op (diff G b1 b1) (op (op a1 a2) (op (inv b2) (inv b1)))
+    C (a1 b1 a2 b2 : G.1.1) : G.1.1
+      = op b1 (op (op (inv b1) (op (op a1 a2) (inv b2))) (inv b1))
+    D (a1 b1 a2 b2 : G.1.1) : G.1.1
+      = op b1 (op (op (op (inv b1) a1) (op a2 (inv b2))) (inv b1))
+    E (a1 b1 a2 b2 : G.1.1) : G.1.1
+      = op b1 (op (op (inv (op (inv a1) b1)) (op a2 (inv b2))) (inv b1))
+    F (a1 b1 a2 b2 : G.1.1) : G.1.1
+      = op (op b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2)))) (inv b1)
+    lem1 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (A a1 b1 a2 b2) (B a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) ((hasIdGroup G).1 (op (op a1 a2) (op (inv b2) (inv b1))) @ -i)
+                 [ (i = 0) -> <j> op (op a1 a2) (lem_group_inv_dist G b1 b2 @ -j)
+                 , (i = 1) -> <j> op ((hasInvGroup G).2 b1 @ -j)
+                                     (op (op a1 a2) (op (inv b2) (inv b1))) ]
+    lem2 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (B a1 b1 a2 b2) (C a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (op b1 (op (inv b1) (isAssocGroup G (op a1 a2) (inv b2) (inv b1) @ i)))
+                 [ (i = 0) -> isAssocGroup G b1 (inv b1) (op (op a1 a2) (op (inv b2) (inv b1)))
+                 , (i = 1) -> <j> op b1 (isAssocGroup G (inv b1) (op (op a1 a2) (inv b2)) (inv b1) @ j) ]
+    lem3 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (C a1 b1 a2 b2) (D a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (op b1 (op (op (isAssocGroup G (inv b1) a1 a2 @ i) (inv b2)) (inv b1)))
+                 [ (i = 0) -> <j> op b1 (op (isAssocGroup G (inv b1) (op a1 a2) (inv b2) @ -j) (inv b1))
+                 , (i = 1) -> <j> op b1 (op (isAssocGroup G (op (inv b1) a1) a2 (inv b2) @ -j) (inv b1)) ]
+    lem4 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (D a1 b1 a2 b2) (A a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (lem2 a1 b1 a2 b2 @ -i)
+                 [ (i = 0) -> lem3 a1 b1 a2 b2
+                 , (i = 1) -> <j> lem1 a1 b1 a2 b2 @ -j ]
+    lem5 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (A a1 b1 a2 b2) (E a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (op b1 (op (op (op (inv b1) (invInvGroup G a1 @ -i))
+                                            (op a2 (inv b2))) (inv b1)))
+                 [ (i = 0) -> lem4 a1 b1 a2 b2
+                 , (i = 1) -> <j> op b1 (op (op (lem_group_inv_dist G (inv a1) b1 @ -j)
+                                                (op a2 (inv b2))) (inv b1)) ]
+    lem6 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (A a1 b1 a2 b2) (F a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (isAssocGroup G b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2))) (inv b1) @ i)
+                 [ (i = 0) -> <j> lem5 a1 b1 a2 b2 @ -j
+                 , (i = 1) -> <_> F a1 b1 a2 b2 ]
