@@ -84,18 +84,14 @@ subgroup (G: group) (P: subgroupProp G): group
   = ((subEl G P, isSetSubEl G P), ((op, assoc, id, (lx, rx)), inv, (li, ri))) where
     un: U = subEl G P
     op (x y: un): un = ((opGroup G) x.1 y.1, subgroupOp G P x.1 y.1 x.2 y.2)
-    unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y =
-      subtypeEquality G.1.1 P.1 P.2.1 x y p
-    assoc: isAssociative un op =
-      \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) ((isAssocGroup G) x.1 y.1 z.1)
+    unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y = subtypeEquality G.1.1 P.1 P.2.1 x y p
+    assoc: isAssociative un op = \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) ((isAssocGroup G) x.1 y.1 z.1)
     id: un = ((idGroup G), subgroupId G P)
     lx (x: un): Path un (op id x) x = unPath (op id x) x ((hasIdGroup G).1 x.1)
     rx (x: un): Path un (op x id) x = unPath (op x id) x ((hasIdGroup G).2 x.1)
     inv (x: un): un = ((invGroup G) x.1, subgroupInv G P x.1 x.2)
-    li (x: un) : Path un (op (inv x) x) id =
-      unPath (op (inv x) x) id ((hasInvGroup G).1 x.1)
-    ri (x: un) : Path un (op x (inv x)) id =
-      unPath (op x (inv x)) id ((hasInvGroup G).2 x.1)
+    li (x: un) : Path un (op (inv x) x) id = unPath (op (inv x) x) id ((hasInvGroup G).1 x.1)
+    ri (x: un) : Path un (op x (inv x)) id = unPath (op x (inv x)) id ((hasInvGroup G).2 x.1)
 
 kerProp (G H: group) (phi: grouphom G H)
   : subgroupProp G

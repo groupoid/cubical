@@ -19,8 +19,8 @@ This library is best to read with HoTT book at http://groupoid.space/math/
 
 ![depgr](https://github.com/groupoid/cubical/blob/master/doc/img/base.png?raw=true)
 
-* [bool](http://groupoid.space/math/#bool) — Boolean
-* [control](http://groupoid.space/math/#control) — Control Free/CoFree, fix, pure/applicative typeclasses)
+* [bool](http://groupoid.space/core/bool/) — Boolean
+* [control](http://groupoid.space/core/control/) — Control Free/CoFree, fix, pure/applicative typeclasses)
 * [eq](http://groupoid.space/math/#eq) — Runtime equality typeclass
 * [functor](http://groupoid.space/math/#functor) — Runtime Functor typeclass
 * [either](http://groupoid.space/math/#either) — Runtime Either

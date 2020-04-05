@@ -55,12 +55,12 @@ Fibration (B: U): U = (X: U) * (X -> B)
 -- Agda Syntax:
 -- https://paolocapriotti.com/blog/2013/02/20/families-and-fibrations/
 --
---  F y = fiber (total B F) B (trivial B F) y
---      = (z: E) * Path B z.1 y
---      = (z: B) * (k: F z) * Path B z y
---      = (x y: B) * (_: Path B x y) * (F y)
---      = (_: isContr B) * (F y)
---      = F y
+--  F y = fiber (total B F) B (trivial B F) y    (A)
+--      = (z: E) * Path B z.1 y                     
+--      = (z: B) * (k: F z) * Path B z y         (B)
+--      = (x y: B) * (_: Path B x y) * (F y)        
+--      = (_: isContr B) * (F y)                 (C)
+--      = F y                                    (D)
 
 fiber (A B: U) (f: A -> B) (y: B): U = (x: A) * Path B (f x) y
 
@@ -72,7 +72,7 @@ decode (B: U) (F: B -> U) (y: B) : F y -> fiber (Sigma B F) B (pi1 B F) y
 
 lem2 (B: U) (F: B -> U) (y: B) (x: F y)
    : Path (F y) (comp (<i>F (refl B y @ i))    x []) x
-           = <j> comp (<i>F (refl B y @ j/\i)) x [(j=1) -> <k>x]
+   = <j> comp (<i>F (refl B y @ j/\i)) x [(j=1) -> <k>x]
 
 lem3 (B: U) (F: B -> U) (y: B) (x: fiber (Sigma B F) B (pi1 B F) y)
    : Path (fiber (Sigma B F) B (pi1 B F) y) ((y,encode B F y x),refl B y) x
