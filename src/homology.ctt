@@ -16,11 +16,14 @@ subtypeEquality (A: U) (B: A -> U) (pB: (x : A) -> isProp (B x)) (s t: Sigma A B
   : Path A s.1 t.1 -> Path (Sigma A B) s t
   = trans (Path A s.1 t.1) (Path (Sigma A B) s t) (<i> lemSigProp A B pB s t @ -i)
 
-diff (H: group) (g h: H.1.1) : H.1.1
+ldiv (H: group) (g h: H.1.1) : H.1.1
+  = (opGroup H) ((invGroup H) g) h
+
+rdiv (H: group) (g h: H.1.1) : H.1.1
   = (opGroup H) g ((invGroup H) h)
 
 conjugate (G: group) (g1 g2: G.1.1): G.1.1
-   = diff G ((opGroup G) g1 g2) g1
+   = rdiv G ((opGroup G) g1 g2) g1
 
 subtypeProp (A: U): U
   = (P : A -> U)
@@ -44,10 +47,10 @@ subgroupInv   (G : group) (P : subgroupProp G) : (g: G.1.1) -> P.1 g -> P.1 ((in
 subgroupOp    (G : group) (P : subgroupProp G) : (g1 g2: G.1.1) -> P.1 g1 -> P.1 g2 -> P.1 ((opGroup G) g1 g2) = P.2.2.2.2
 
 subgroupPropDiff (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
-  (u : P.1 g1) (v : P.1 g2) : P.1 (diff G g1 g2)
+  (u : P.1 g1) (v : P.1 g2) : P.1 (rdiv G g1 g2)
   = subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
 
-subgroupSelfDiff (G : group) (P : subgroupProp G) (g : G.1.1) : P.1 (diff G g g)
+subgroupSelfDiff (G : group) (P : subgroupProp G) (g : G.1.1) : P.1 (rdiv G g g)
   = transport (<i> P.1 ((hasInvGroup G).2 g @ -i)) (subgroupId G P)
 
 isNormal (G: group) (P: subgroupProp G) : U
@@ -137,7 +140,7 @@ imGroup (G: group) (H: group) (psi: grouphom G H): group
   = subgroup H (imProp G H psi)
 
 relKerIm (G H: group) (phi: grouphom G H) (x y: H.1.1): U
-  = propTrunc (fiber G.1.1 H.1.1 phi.1 (diff H x y))
+  = propTrunc (fiber G.1.1 H.1.1 phi.1 (rdiv H x y))
 
 elKerIm (G H: group) (phi: grouphom G H): U
   = quot H.1.1 (relKerIm G H phi)
@@ -203,12 +206,35 @@ kernelIsNormalSubgroup (G H : group) (phi : grouphom G H)
                  , (i = 1) -> <_> idGroup H ]
     cond: isNormal G ker = (G, phiConj)
 
+--   a⁻¹ * b
+-- = a⁻¹ * b⁻¹⁻¹
+-- = (1 * a⁻¹) * b⁻¹⁻¹
+-- = ((b⁻¹ * b⁻¹⁻¹) * a⁻¹) * b⁻¹⁻¹
+-- = (b⁻¹ * (b⁻¹⁻¹ * a⁻¹)) * b⁻¹⁻¹
+-- = (b⁻¹ * (a * b⁻¹)⁻¹) * b⁻¹⁻¹
+ldivToConjInvRdiv (G : group) (a b : G.1.1) :
+  Path G.1.1 (ldiv G a b) (conjugate G (invGroup G b) (invGroup G (rdiv G a b)))
+  = <i> comp (<_> G.1.1) (op ((hasIdGroup G).1 (inv a) @ -i) (inv (inv b)))
+             [ (i = 0) -> <j> op (inv a) (invInvGroup G b @ j)
+             , (i = 1) -> lem ]
+  where
+    op (a b : G.1.1) : G.1.1 = opGroup G a b
+    inv (a : G.1.1) : G.1.1 = invGroup G a
+    e : G.1.1 = idGroup G
+    lem : Path G.1.1 (op (op e (inv a)) (inv (inv b)))
+                     (conjugate G (inv b) (inv (rdiv G a b)))
+      = <i> comp (<_> G.1.1) (op (isAssocGroup G (inv b) (inv (inv b)) (inv a) @ -i) (inv (inv b)))
+            [ (i = 0) -> <j> op (op ((hasInvGroup G).2 (inv b) @ j) (inv a)) (inv (inv b))
+            , (i = 1) -> <j> op (op (inv b) (lem_group_inv_dist G a (inv b) @ -j)) (inv (inv b)) ]
+
 normalSubgroupLem (G : group) (P : normalSubgroupProp G)
-  (a b : G.1.1) (p : P.1.1 (diff G a b)) : P.1.1 (opGroup G (invGroup G a) b)
-  = undefined -- TODO
+  (a b : G.1.1) (p : P.1.1 (rdiv G a b)) : P.1.1 (opGroup G (invGroup G a) b)
+  = transport (<i> P.1.1 (ldivToConjInvRdiv G a b @ -i))
+              (P.2.2 (invGroup G b) (invGroup G (rdiv G a b))
+                (subgroupInv G P.1 (rdiv G a b) p))
 
 factorProp (G : group) (P : normalSubgroupProp G) : G.1.1 -> G.1.1 -> U
-  = \(x y : G.1.1) -> P.1.1 (diff G x y)
+  = \(x y : G.1.1) -> P.1.1 (rdiv G x y)
 
 factor (G : group) (P : normalSubgroupProp G) : U
   = setQuot G.1.1 (factorProp G P)
@@ -221,11 +247,11 @@ factorMul (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> f
     (subgroupSelfDiff G P.1) (subgroupSelfDiff G P.1)
     (setQuotIsSet G.1.1 (factorProp G P))
     (\(a b : G.1.1) -> factorIncl G P (op a b))
-    (\(a1 b1 a2 b2 : G.1.1) (p : P.1.1 (diff G a1 b1)) (q : P.1.1 (diff G a2 b2)) ->
+    (\(a1 b1 a2 b2 : G.1.1) (p : P.1.1 (rdiv G a1 b1)) (q : P.1.1 (rdiv G a2 b2)) ->
       setQuotId G.1.1 (factorProp G P) (op a1 a2) (op b1 b2)
         transport (<i> P.1.1 (lem6 a1 b1 a2 b2 @ -i))
                   (P.2.2 b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2)))
-                    (subgroupOp G P.1 (inv (op (inv a1) b1)) (diff G a2 b2)
+                    (subgroupOp G P.1 (inv (op (inv a1) b1)) (rdiv G a2 b2)
                       (subgroupInv G P.1 (op (inv a1) b1)
                         (normalSubgroupLem G P a1 b1 p)) q)))
   where
@@ -244,8 +270,8 @@ factorMul (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> f
     -- = (b1 * ((a1⁻¹ * b1)⁻¹ * (a2 * b2⁻¹))) * b1⁻¹  (F)
     op (a b : G.1.1) : G.1.1 = opGroup G a b
     inv (a : G.1.1) : G.1.1 = invGroup G a
-    A (a1 b1 a2 b2 : G.1.1) : G.1.1 = diff G (op a1 a2) (op b1 b2)
-    B (a1 b1 a2 b2 : G.1.1) : G.1.1 = op (diff G b1 b1) (op (op a1 a2) (op (inv b2) (inv b1)))
+    A (a1 b1 a2 b2 : G.1.1) : G.1.1 = rdiv G (op a1 a2) (op b1 b2)
+    B (a1 b1 a2 b2 : G.1.1) : G.1.1 = op (rdiv G b1 b1) (op (op a1 a2) (op (inv b2) (inv b1)))
     C (a1 b1 a2 b2 : G.1.1) : G.1.1 = op b1 (op (op (inv b1) (op (op a1 a2) (inv b2))) (inv b1))
     D (a1 b1 a2 b2 : G.1.1) : G.1.1 = op b1 (op (op (op (inv b1) a1) (op a2 (inv b2))) (inv b1))
     E (a1 b1 a2 b2 : G.1.1) : G.1.1 = op b1 (op (op (inv (op (inv a1) b1)) (op a2 (inv b2))) (inv b1))
