@@ -140,7 +140,7 @@ relKerIm (G H: group) (phi: grouphom G H) (x y: H.1.1): U
   = propTrunc (fiber G.1.1 H.1.1 phi.1 (diff H x y))
 
 elKerIm (G H: group) (phi: grouphom G H): U
-  = propQuot H.1.1 (relKerIm G H phi)
+  = quot H.1.1 (relKerIm G H phi)
 
 mutual
   data Seq (A: U) (B: A -> A -> U)
