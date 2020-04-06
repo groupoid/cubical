@@ -368,19 +368,21 @@ dgrouphom    (a b: dgroup):  U = monoidhom (a.1, a.2.1.1) (b.1, b.2.1.1)
 cmonabgrouphom (a: cmonoid) (b: abgroup): U = monoidhom (a.1, a.2.1) (b.1, b.2.1.1)
 
 -- Homomorphism constructors
+group' (g : group) : monoid = (g.1, g.2.1)
 grouphom' (a b: group) (f: a.1.1 -> b.1.1)
           (pO: preservesOp a.1.1 b.1.1 (opGroup a) (opGroup b) f)
-  : monoidhom (a.1, a.2.1) (b.1, b.2.1)
+  : monoidhom (group' a) (group' b)
   = (f,pO,(lem_group_cancellative b).1(f(idGroup a))(f(idGroup a))(idGroup b)p) where
     p: Path b.1.1(opGroup b(f(idGroup a))(f(idGroup a)))(opGroup b (f(idGroup a))(idGroup b))
       = <i> comp (<_> b.1.1) (f ((hasIdGroup a).1 (idGroup a) @ i))
         [ (i = 0) -> pO (idGroup a) (idGroup a),
           (i = 1) -> <j> (hasIdGroup b).2 (f (idGroup a)) @ -j ]
 
+abgroup' (a : abgroup) : group = (a.1, a.2.1)
 abgrouphom' (a b: abgroup) (f: a.1.1 -> b.1.1)
     (pO: preservesOp a.1.1 b.1.1 (opCGroup a) (opCGroup b) f)
   : monoidhom (a.1, a.2.1.1) (b.1, b.2.1.1)
-  = grouphom' (a.1, a.2.1) (b.1, b.2.1) f pO
+  = grouphom' (abgroup' a) (abgroup' b) f pO
 
 -- g ∘ f
 monoidhomcomp (a b c: monoid)
@@ -397,7 +399,15 @@ monoidhomcomp (a b c: monoid)
         [ (i = 0) -> <_> h (idMonoid a)
         , (i = 1) -> g.2.2 ]
 
--- h ∘ (g ∘ f) ≡ (h ∘ g) ∘ f
+grouphomcomp (a b c : group)
+  (f : grouphom a b) (g : grouphom b c) : grouphom a c
+  = monoidhomcomp (group' a) (group' b) (group' c) f g
+
+abgrouphomcomp (a b c : abgroup)
+  (f : abgrouphom a b) (g : abgrouphom b c) : abgrouphom a c
+  = monoidhomcomp (group' (abgroup' a)) (group' (abgroup' b)) (group' (abgroup' c)) f g
+
+-- h ∘ (g ∘ f) = (h ∘ g) ∘ f
 lemma_monoidcomp0 (a b c d: monoid) (f: monoidhom a b)
     (g: monoidhom b c) (h: monoidhom c d)
   : Path (monoidhom a d) (monoidhomcomp a c d (monoidhomcomp a b c f g) h)
@@ -406,23 +416,29 @@ lemma_monoidcomp0 (a b c d: monoid) (f: monoidhom a b)
     f0: monoidhom a d = monoidhomcomp a c d (monoidhomcomp a b c f g) h
     f1: monoidhom a d = monoidhomcomp a b d f (monoidhomcomp b c d g h)
 
+trivmonoidhom (a b : monoid) : monoidhom a b
+  = (\(x : a.1.1) -> idMonoid b, \(x y : a.1.1) -> <i> (hasIdMonoid b).1 (idMonoid b) @ -i, <_> idMonoid b)
+
+trivabgrouphom (a b : abgroup) : abgrouphom a b
+  = trivmonoidhom (group' (abgroup' a)) (group' (abgroup' b))
+
 -- 1_a
 idmonoidhom (a: monoid): monoidhom a a
-  = (\ (x: a.1.1) -> x, \ (a0 a1: a.1.1) -> <_> opMonoid a a0 a1, <_> idMonoid a)
+  = (\ (x: a.1.1) -> x, \(a0 a1: a.1.1) -> <_> opMonoid a a0 a1, <_> idMonoid a)
 
--- f ∘ 1_a ≡ f
+-- f ∘ 1_a = f
 lemma_idmonoidhom0 (a b: monoid) (f: monoidhom a b)
   : Path (monoidhom a b) (monoidhomcomp a a b (idmonoidhom a) f) f
   = lemSig (a.1.1 -> b.1.1) (ismonoidhom a b) (propismonoidhom a b) h f (<_> f.1) where
     h: monoidhom a b = monoidhomcomp a a b (idmonoidhom a) f
 
--- 1_b ∘ f ≡ f
+-- 1_b ∘ f = f
 lemma_idmonoidhom1 (a b: monoid) (f: monoidhom a b)
   : Path (monoidhom a b) (monoidhomcomp a b b f (idmonoidhom b)) f
   = lemSig (a.1.1 -> b.1.1) (ismonoidhom a b) (propismonoidhom a b) h f (<_> f.1) where
     h: monoidhom a b = monoidhomcomp a b b f (idmonoidhom b)
 
--- f(x⁻¹) ≡ f(x)⁻¹
+-- f(x⁻¹) = f(x)⁻¹
 lem_grouphom_inv (g h: group) (f: grouphom g h) (x: g.1.1)
   : Path h.1.1 (f.1 (invGroup g x)) (invGroup h (f.1 x))
   = <i> comp (<_> h.1.1) (p2 @ i) [(i=0) -> (hasIdGroup h).1 (f.1 x'), (i=1) -> <_> y' ] where

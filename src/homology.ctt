@@ -50,7 +50,7 @@ subgroupPropRdiv (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
   (u : P.1 g1) (v : P.1 g2) : P.1 (rdiv G g1 g2)
   = subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
 
-subgroupSelfDiff (G : group) (P : subgroupProp G) (g : G.1.1) : P.1 (rdiv G g g)
+subgroupSelfRdiv (G : group) (P : subgroupProp G) (g : G.1.1) : P.1 (rdiv G g g)
   = transport (<i> P.1 ((hasInvGroup G).2 g @ -i)) (subgroupId G P)
 
 isNormal (G: group) (P: subgroupProp G) : U
@@ -250,7 +250,7 @@ idFactor (G : group) (P : normalSubgroupProp G) : factor G P
 
 opFactor (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> factor G P
   = setQuotLift2 G.1.1 G.1.1 (factor G P) (factorProp G P) (factorProp G P)
-    (subgroupSelfDiff G P.1) (subgroupSelfDiff G P.1)
+    (subgroupSelfRdiv G P.1) (subgroupSelfRdiv G P.1)
     (factorIsSet G P)
     (\(a b : G.1.1) -> factorIncl G P (op a b))
     (\(a1 b1 a2 b2 : G.1.1) (p : P.1.1 (rdiv G a1 b1)) (q : P.1.1 (rdiv G a2 b2)) ->
@@ -368,8 +368,36 @@ hasRightInverseFactor (G : group) (P : normalSubgroupProp G) :
     (\(x : G.1.1) -> <i> quotient ((hasInvGroup G).2 x @ i))
     (\(x : factor G P) -> factorIsSet G P (opFactor G P x (invFactor G P x)) (idFactor G P))
 
-factorGroup (G : group) (P : normalSubgroupProp G): group
+factorGroup (G : group) (P : normalSubgroupProp G) : group
   = ((factor G P, factorIsSet G P),
      ((opFactor G P, isAssocFactor G P, idFactor G P,
       (hasLeftIdFactor G P, hasRightIdFactor G P)), invFactor G P,
       (hasLeftInverseFactor G P, hasRightInverseFactor G P)))
+
+subgroupHomo (G : group) (P : subgroupProp G) : grouphom (subgroup G P) G
+  = (\(u : (x : G.1.1) * P.1 x) -> u.1,
+     (\(u v : (x : G.1.1) * P.1 x) -> <_> opGroup G u.1 v.1, <_> idGroup G))
+
+chainComplex : U
+  = (K : nat -> abgroup)
+  * (hom : (n : nat) -> abgrouphom (K (succ n)) (K n))
+  * ((n : nat) -> Path (abgrouphom (K (succ2 n)) (K n))
+      (abgrouphomcomp (K (succ2 n)) (K (succ n)) (K n) (hom (succ n)) (hom n))
+      (trivabgrouphom (K (succ2 n)) (K n)))
+
+K (C : chainComplex) : nat -> abgroup = C.1
+K' (C : chainComplex) (n : nat) : group = abgroup' (K C n)
+
+hom (C : chainComplex) : (n : nat) -> abgrouphom (K C (succ n)) (K C n) = C.2.1
+
+propZ (C : chainComplex) (n : nat) : subgroupProp (K' C (succ n))
+  = imProp (K' C (succ2 n)) (K' C (succ n)) (hom C (succ n))
+
+Z (C : chainComplex) (n : nat) : group = subgroup (K' C (succ n)) (propZ C n)
+
+B (C : chainComplex) (n : nat) : normalSubgroupProp (Z C n)
+  = kernelIsNormalSubgroup (Z C n) (K' C n)
+      (grouphomcomp (Z C n) (K' C (succ n)) (K' C n)
+        (subgroupHomo (K' C (succ n)) (propZ C n)) (hom C n))
+
+H (C : chainComplex) (n : nat) : group = factorGroup (Z C n) (B C n)

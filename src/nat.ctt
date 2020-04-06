@@ -50,6 +50,11 @@ exponent : nat -> nat -> nat =
      (\(_:nat) (exponent_:nat->nat) (m:nat) -> mult m (exponent_ m)))
      power x
 
+succ2 (x : nat) : nat = succ (succ x)
+succ3 (x : nat) : nat = succ (succ2 x)
+succ4 (x : nat) : nat = succ (succ3 x)
+succ5 (x : nat) : nat = succ (succ4 x)
+
 n0  : nat = zero
 n1  : nat = succ n0
 n2  : nat = succ n1
