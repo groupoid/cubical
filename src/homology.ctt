@@ -46,7 +46,7 @@ subgroupId    (G : group) (P : subgroupProp G) : P.1 (idGroup G) = P.2.2.1
 subgroupInv   (G : group) (P : subgroupProp G) : (g: G.1.1) -> P.1 g -> P.1 ((invGroup G) g) = P.2.2.2.1
 subgroupOp    (G : group) (P : subgroupProp G) : (g1 g2: G.1.1) -> P.1 g1 -> P.1 g2 -> P.1 ((opGroup G) g1 g2) = P.2.2.2.2
 
-subgroupPropDiff (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
+subgroupPropRdiv (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
   (u : P.1 g1) (v : P.1 g2) : P.1 (rdiv G g1 g2)
   = subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
 
@@ -239,13 +239,19 @@ factorProp (G : group) (P : normalSubgroupProp G) : G.1.1 -> G.1.1 -> U
 factor (G : group) (P : normalSubgroupProp G) : U
   = setQuot G.1.1 (factorProp G P)
 
+factorIsSet (G : group) (P : normalSubgroupProp G) : isSet (factor G P)
+  = setQuotIsSet G.1.1 (factorProp G P)
+
 factorIncl (G : group) (P : normalSubgroupProp G) (x : G.1.1) : factor G P
   = quotient x
 
-factorMul (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> factor G P
+idFactor (G : group) (P : normalSubgroupProp G) : factor G P
+  = factorIncl G P (idGroup G)
+
+opFactor (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> factor G P
   = setQuotLift2 G.1.1 G.1.1 (factor G P) (factorProp G P) (factorProp G P)
     (subgroupSelfDiff G P.1) (subgroupSelfDiff G P.1)
-    (setQuotIsSet G.1.1 (factorProp G P))
+    (factorIsSet G P)
     (\(a b : G.1.1) -> factorIncl G P (op a b))
     (\(a1 b1 a2 b2 : G.1.1) (p : P.1.1 (rdiv G a1 b1)) (q : P.1.1 (rdiv G a2 b2)) ->
       setQuotId G.1.1 (factorProp G P) (op a1 a2) (op b1 b2)
@@ -300,3 +306,70 @@ factorMul (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> f
       = <i> comp (<_> G.1.1) (isAssocGroup G b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2))) (inv b1) @ i)
                  [ (i = 0) -> <j> lem5 a1 b1 a2 b2 @ -j
                  , (i = 1) -> <_> F a1 b1 a2 b2 ]
+
+hasLeftIdFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P (idFactor G P) x) x
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P (idFactor G P) x) x)
+    (\(x : G.1.1) -> <i> quotient ((hasIdGroup G).1 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P (idFactor G P) x) x)
+
+hasRightIdFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P x (idFactor G P)) x
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P x (idFactor G P)) x)
+    (\(x : G.1.1) -> <i> quotient ((hasIdGroup G).2 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P x (idFactor G P)) x)
+
+isAssocFactor (G : group) (P : normalSubgroupProp G) :
+  (x y z : factor G P) -> Path (factor G P) (opFactor G P x (opFactor G P y z))
+                                            (opFactor G P (opFactor G P x y) z)
+  = setQuotIndProp G.1.1 (factorProp G P) C
+    (\(x : G.1.1) ->
+      setQuotIndProp G.1.1 (factorProp G P) (B (quotient x))
+        (\(y : G.1.1) ->
+          setQuotIndProp G.1.1 (factorProp G P) (A (quotient x) (quotient y))
+            (\(z : G.1.1) -> <i> quotient (isAssocGroup G x y z @ i))
+            (propA (quotient x) (quotient y)))
+        (propB (quotient x)))
+    propC
+  where
+    op (x y : factor G P) : factor G P = opFactor G P x y
+    A (x y z : factor G P) : U
+      = Path (factor G P) (op x (op y z)) (op (op x y) z)
+    B (x y : factor G P) : U = (z : factor G P) -> A x y z
+    C (x : factor G P) : U = (y z : factor G P) -> A x y z
+    propA (x y z : factor G P) : isProp (A x y z)
+      = setQuotIsSet G.1.1 (factorProp G P) (op x (op y z)) (op (op x y) z)
+    propB (x y : factor G P) : isProp (B x y)
+      = propPi (factor G P) (A x y) (propA x y)
+    propC (x : factor G P) : isProp (C x)
+      = propPi (factor G P) (B x) (propB x)
+
+invFactor (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P
+  = setQuotLift G.1.1 (factor G P) (factorProp G P) (factorIsSet G P)
+    (\(x : G.1.1) -> quotient (invGroup G x))
+    (\(x y : G.1.1) (r : P.1.1 (rdiv G x y)) ->
+      setQuotId G.1.1 (factorProp G P) (invGroup G x) (invGroup G y)
+        (transport (<i> P.1.1 (opGroup G (invGroup G x) (invInvGroup G y @ -i)))
+          (normalSubgroupLem G P x y r)))
+
+hasLeftInverseFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P (invFactor G P x) x) (idFactor G P)
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P (invFactor G P x) x) (idFactor G P))
+    (\(x : G.1.1) -> <i> quotient ((hasInvGroup G).1 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P (invFactor G P x) x) (idFactor G P))
+
+hasRightInverseFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P x (invFactor G P x)) (idFactor G P)
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P x (invFactor G P x)) (idFactor G P))
+    (\(x : G.1.1) -> <i> quotient ((hasInvGroup G).2 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P x (invFactor G P x)) (idFactor G P))
+
+factorGroup (G : group) (P : normalSubgroupProp G): group
+  = ((factor G P, factorIsSet G P),
+     ((opFactor G P, isAssocFactor G P, idFactor G P,
+      (hasLeftIdFactor G P, hasRightIdFactor G P)), invFactor G P,
+      (hasLeftInverseFactor G P, hasRightInverseFactor G P)))
