@@ -3,6 +3,7 @@
    - Group and AbGroup;
    - Ring and AbRing;
    - Hom sequence;
+   - Subgroups, Normal, Full;
    - Presheaf Type Theory.
    Copyright (c) Groupoid Infinity, 2017-1018.
 
@@ -13,6 +14,8 @@
 module algebra where
 import pi
 import set
+import iso_sigma
+import quotient
 
 isAssociative (M: U) (op: M -> M -> M): U
   = (a b c: M) -> Path M (op a (op b c)) (op (op a b) c)
@@ -453,6 +456,290 @@ lem_grouphom_inv (g h: group) (f: grouphom g h) (x: g.1.1)
     p2: Path h.1.1 (opGroup h (idGroup h) (f.1 x')) y'
         = <i> comp (<_> h.1.1) (p1 @ i) [(i=0) -> <j> opGroup h ((h.2.2.2).1 y @ j) (f.1 x'),
                                          (i=1) -> <_> y' ]
+
+subtypeEquality (A: U) (B: A -> U) (pB: (x : A) -> isProp (B x)) (s t: Sigma A B)
+  : Path A s.1 t.1 -> Path (Sigma A B) s t
+  = trans (Path A s.1 t.1) (Path (Sigma A B) s t) (<i> lemSigProp A B pB s t @ -i)
+
+ldiv (H: group) (g h: H.1.1) : H.1.1
+  = (opGroup H) ((invGroup H) g) h
+
+rdiv (H: group) (g h: H.1.1) : H.1.1
+  = (opGroup H) g ((invGroup H) h)
+
+conjugate (G: group) (g1 g2: G.1.1): G.1.1
+   = rdiv G ((opGroup G) g1 g2) g1
+
+subtypeProp (A: U): U
+  = (P : A -> U)
+  * (a : A) -> isProp (P a)
+
+subtype (A : U) (P : subtypeProp A): U
+  = (x : A) -- prop
+  * (P.1 x) -- level
+
+subgroupProp (G: group): U
+  = (prop: G.1.1 -> U)
+  * (level: (x: G.1.1) -> isProp (prop x))
+  * (ident: prop (idGroup G))
+  * (inv: (g: G.1.1) -> prop g -> prop ((invGroup G) g))
+  * ((g1 g2: G.1.1) -> prop g1 -> prop g2 -> prop ((opGroup G) g1 g2))
+
+-- Accessors
+subgroupLevel (G : group) (P : subgroupProp G) : (x : G.1.1) -> isProp (P.1 x) = P.2.1
+subgroupId    (G : group) (P : subgroupProp G) : P.1 (idGroup G) = P.2.2.1
+subgroupInv   (G : group) (P : subgroupProp G) : (g: G.1.1) -> P.1 g -> P.1 ((invGroup G) g) = P.2.2.2.1
+subgroupOp    (G : group) (P : subgroupProp G) : (g1 g2: G.1.1) -> P.1 g1 -> P.1 g2 -> P.1 ((opGroup G) g1 g2) = P.2.2.2.2
+
+subgroupPropRdiv (G : group) (P : subgroupProp G) (g1 g2 : G.1.1)
+  (u : P.1 g1) (v : P.1 g2) : P.1 (rdiv G g1 g2)
+  = subgroupOp G P g1 ((invGroup G) g2) u (subgroupInv G P g2 v)
+
+subgroupSelfRdiv (G : group) (P : subgroupProp G) (g : G.1.1) : P.1 (rdiv G g g)
+  = transport (<i> P.1 ((hasInvGroup G).2 g @ -i)) (subgroupId G P)
+
+isNormal (G: group) (P: subgroupProp G) : U
+  = (X: group)
+  * (g1 g2: G.1.1) -> P.1 g2 -> P.1 (conjugate G g1 g2)
+
+isFull (G: group) (P: subgroupProp G): U
+  = (g: G.1.1) -> P.1 g
+
+normalSubgroupProp (G: group): U
+  = (P: subgroupProp G)
+  * isNormal G P
+
+subElProp (G: group) (P: subgroupProp G)
+  : subtypeProp G.1.1
+  = (P.1,P.2.1)
+
+subEl (G: group) (P: subgroupProp G): U
+  = subtype G.1.1 (subElProp G P)
+
+isSetSubEl (G: group) (P: subgroupProp G): isSet (subEl G P)
+  = setSig G.1.1 P.1 G.1.2 (\(x : G.1.1) -> propSet (P.1 x) (P.2.1 x))
+
+subgroup (G: group) (P: subgroupProp G): group
+  = ((subEl G P, isSetSubEl G P), ((op, assoc, id, (lx, rx)), inv, (li, ri))) where
+    un: U = subEl G P
+    op (x y: un): un = ((opGroup G) x.1 y.1, subgroupOp G P x.1 y.1 x.2 y.2)
+    unPath (x y : un) (p : Path G.1.1 x.1 y.1) : Path un x y = subtypeEquality G.1.1 P.1 P.2.1 x y p
+    assoc: isAssociative un op = \(x y z : un) -> unPath (op x (op y z)) (op (op x y) z) ((isAssocGroup G) x.1 y.1 z.1)
+    id: un = ((idGroup G), subgroupId G P)
+    lx (x: un): Path un (op id x) x = unPath (op id x) x ((hasIdGroup G).1 x.1)
+    rx (x: un): Path un (op x id) x = unPath (op x id) x ((hasIdGroup G).2 x.1)
+    inv (x: un): un = ((invGroup G) x.1, subgroupInv G P x.1 x.2)
+    li (x: un) : Path un (op (inv x) x) id = unPath (op (inv x) x) id ((hasInvGroup G).1 x.1)
+    ri (x: un) : Path un (op x (inv x)) id = unPath (op x (inv x)) id ((hasInvGroup G).2 x.1)
+
+--   a⁻¹ * b
+-- = a⁻¹ * b⁻¹⁻¹
+-- = (1 * a⁻¹) * b⁻¹⁻¹
+-- = ((b⁻¹ * b⁻¹⁻¹) * a⁻¹) * b⁻¹⁻¹
+-- = (b⁻¹ * (b⁻¹⁻¹ * a⁻¹)) * b⁻¹⁻¹
+-- = (b⁻¹ * (a * b⁻¹)⁻¹) * b⁻¹⁻¹
+ldivToConjInvRdiv (G : group) (a b : G.1.1) :
+  Path G.1.1 (ldiv G a b) (conjugate G (invGroup G b) (invGroup G (rdiv G a b)))
+  = <i> comp (<_> G.1.1) (op ((hasIdGroup G).1 (inv a) @ -i) (inv (inv b)))
+             [ (i = 0) -> <j> op (inv a) (invInvGroup G b @ j)
+             , (i = 1) -> lem ]
+  where
+    op (a b : G.1.1) : G.1.1 = opGroup G a b
+    inv (a : G.1.1) : G.1.1 = invGroup G a
+    e : G.1.1 = idGroup G
+    lem : Path G.1.1 (op (op e (inv a)) (inv (inv b)))
+                     (conjugate G (inv b) (inv (rdiv G a b)))
+      = <i> comp (<_> G.1.1) (op (isAssocGroup G (inv b) (inv (inv b)) (inv a) @ -i) (inv (inv b)))
+            [ (i = 0) -> <j> op (op ((hasInvGroup G).2 (inv b) @ j) (inv a)) (inv (inv b))
+            , (i = 1) -> <j> op (op (inv b) (lem_group_inv_dist G a (inv b) @ -j)) (inv (inv b)) ]
+
+normalSubgroupLem (G : group) (P : normalSubgroupProp G)
+  (a b : G.1.1) (p : P.1.1 (rdiv G a b)) : P.1.1 (opGroup G (invGroup G a) b)
+  = transport (<i> P.1.1 (ldivToConjInvRdiv G a b @ -i))
+              (P.2.2 (invGroup G b) (invGroup G (rdiv G a b))
+                (subgroupInv G P.1 (rdiv G a b) p))
+
+factorProp (G : group) (P : normalSubgroupProp G) : G.1.1 -> G.1.1 -> U
+  = \(x y : G.1.1) -> P.1.1 (rdiv G x y)
+
+factor (G : group) (P : normalSubgroupProp G) : U
+  = setQuot G.1.1 (factorProp G P)
+
+factorIsSet (G : group) (P : normalSubgroupProp G) : isSet (factor G P)
+  = setQuotIsSet G.1.1 (factorProp G P)
+
+factorIncl (G : group) (P : normalSubgroupProp G) (x : G.1.1) : factor G P
+  = quotient x
+
+idFactor (G : group) (P : normalSubgroupProp G) : factor G P
+  = factorIncl G P (idGroup G)
+
+opFactor (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P -> factor G P
+  = setQuotLift2 G.1.1 G.1.1 (factor G P) (factorProp G P) (factorProp G P)
+    (subgroupSelfRdiv G P.1) (subgroupSelfRdiv G P.1)
+    (factorIsSet G P)
+    (\(a b : G.1.1) -> factorIncl G P (op a b))
+    (\(a1 b1 a2 b2 : G.1.1) (p : P.1.1 (rdiv G a1 b1)) (q : P.1.1 (rdiv G a2 b2)) ->
+      setQuotId G.1.1 (factorProp G P) (op a1 a2) (op b1 b2)
+        transport (<i> P.1.1 (lem6 a1 b1 a2 b2 @ -i))
+                  (P.2.2 b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2)))
+                    (subgroupOp G P.1 (inv (op (inv a1) b1)) (rdiv G a2 b2)
+                      (subgroupInv G P.1 (op (inv a1) b1)
+                        (normalSubgroupLem G P a1 b1 p)) q)))
+  where
+    --   ((a1 * a2) * (b1 * b2)⁻¹)                    (A)
+    -- = ((a1 * a2) * (b2⁻¹ * b1⁻¹))                     
+    -- = 1 * ((a1 * a2) * (b2⁻¹ * b1⁻¹))                 
+    -- = (b1 * b1⁻¹) * ((a1 * a2) * (b2⁻¹ * b1⁻¹))    (B)
+    -- = b1 * (b1⁻¹ * ((a1 * a2) * (b2⁻¹ * b1⁻¹)))       
+    -- = b1 * (b1⁻¹ * (((a1 * a2) * b2⁻¹) * b1⁻¹))       
+    -- = b1 * ((b1⁻¹ * ((a1 * a2) * b2⁻¹)) * b1⁻¹)    (C)
+    -- = b1 * (((b1⁻¹ * (a1 * a2)) * b2⁻¹) * b1⁻¹)       
+    -- = b1 * ((((b1⁻¹ * a1) * a2) * b2⁻¹) * b1⁻¹)       
+    -- = b1 * (((b1⁻¹ * a1) * (a2 * b2⁻¹)) * b1⁻¹)    (D)
+    -- = b1 * (((b1⁻¹ * a1⁻¹⁻¹) * (a2 * b2⁻¹)) * b1⁻¹)   
+    -- = b1 * (((a1⁻¹ * b1)⁻¹ * (a2 * b2⁻¹)) * b1⁻¹)  (E)
+    -- = (b1 * ((a1⁻¹ * b1)⁻¹ * (a2 * b2⁻¹))) * b1⁻¹  (F)
+    op (a b : G.1.1) : G.1.1 = opGroup G a b
+    inv (a : G.1.1) : G.1.1 = invGroup G a
+    A (a1 b1 a2 b2 : G.1.1) : G.1.1 = rdiv G (op a1 a2) (op b1 b2)
+    B (a1 b1 a2 b2 : G.1.1) : G.1.1 = op (rdiv G b1 b1) (op (op a1 a2) (op (inv b2) (inv b1)))
+    C (a1 b1 a2 b2 : G.1.1) : G.1.1 = op b1 (op (op (inv b1) (op (op a1 a2) (inv b2))) (inv b1))
+    D (a1 b1 a2 b2 : G.1.1) : G.1.1 = op b1 (op (op (op (inv b1) a1) (op a2 (inv b2))) (inv b1))
+    E (a1 b1 a2 b2 : G.1.1) : G.1.1 = op b1 (op (op (inv (op (inv a1) b1)) (op a2 (inv b2))) (inv b1))
+    F (a1 b1 a2 b2 : G.1.1) : G.1.1 = op (op b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2)))) (inv b1)
+    lem1 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (A a1 b1 a2 b2) (B a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) ((hasIdGroup G).1 (op (op a1 a2) (op (inv b2) (inv b1))) @ -i)
+                 [ (i = 0) -> <j> op (op a1 a2) (lem_group_inv_dist G b1 b2 @ -j)
+                 , (i = 1) -> <j> op ((hasInvGroup G).2 b1 @ -j) (op (op a1 a2) (op (inv b2) (inv b1))) ]
+    lem2 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (B a1 b1 a2 b2) (C a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (op b1 (op (inv b1) (isAssocGroup G (op a1 a2) (inv b2) (inv b1) @ i)))
+                 [ (i = 0) -> isAssocGroup G b1 (inv b1) (op (op a1 a2) (op (inv b2) (inv b1)))
+                 , (i = 1) -> <j> op b1 (isAssocGroup G (inv b1) (op (op a1 a2) (inv b2)) (inv b1) @ j) ]
+    lem3 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (C a1 b1 a2 b2) (D a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (op b1 (op (op (isAssocGroup G (inv b1) a1 a2 @ i) (inv b2)) (inv b1)))
+                 [ (i = 0) -> <j> op b1 (op (isAssocGroup G (inv b1) (op a1 a2) (inv b2) @ -j) (inv b1))
+                 , (i = 1) -> <j> op b1 (op (isAssocGroup G (op (inv b1) a1) a2 (inv b2) @ -j) (inv b1)) ]
+    lem4 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (D a1 b1 a2 b2) (A a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (lem2 a1 b1 a2 b2 @ -i)
+                 [ (i = 0) -> lem3 a1 b1 a2 b2
+                 , (i = 1) -> <j> lem1 a1 b1 a2 b2 @ -j ]
+    lem5 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (A a1 b1 a2 b2) (E a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (op b1 (op (op (op (inv b1) (invInvGroup G a1 @ -i)) (op a2 (inv b2))) (inv b1)))
+                 [ (i = 0) -> lem4 a1 b1 a2 b2
+                 , (i = 1) -> <j> op b1 (op (op (lem_group_inv_dist G (inv a1) b1 @ -j) (op a2 (inv b2))) (inv b1)) ]
+    lem6 (a1 b1 a2 b2 : G.1.1) : Path G.1.1 (A a1 b1 a2 b2) (F a1 b1 a2 b2)
+      = <i> comp (<_> G.1.1) (isAssocGroup G b1 (op (inv (op (inv a1) b1)) (op a2 (inv b2))) (inv b1) @ i)
+                 [ (i = 0) -> <j> lem5 a1 b1 a2 b2 @ -j
+                 , (i = 1) -> <_> F a1 b1 a2 b2 ]
+
+hasLeftIdFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P (idFactor G P) x) x
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P (idFactor G P) x) x)
+    (\(x : G.1.1) -> <i> quotient ((hasIdGroup G).1 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P (idFactor G P) x) x)
+
+hasRightIdFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P x (idFactor G P)) x
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P x (idFactor G P)) x)
+    (\(x : G.1.1) -> <i> quotient ((hasIdGroup G).2 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P x (idFactor G P)) x)
+
+isAssocFactor (G : group) (P : normalSubgroupProp G) :
+  (x y z : factor G P) -> Path (factor G P) (opFactor G P x (opFactor G P y z))
+                                            (opFactor G P (opFactor G P x y) z)
+  = setQuotIndProp G.1.1 (factorProp G P) C
+    (\(x : G.1.1) ->
+      setQuotIndProp G.1.1 (factorProp G P) (B (quotient x))
+        (\(y : G.1.1) ->
+          setQuotIndProp G.1.1 (factorProp G P) (A (quotient x) (quotient y))
+            (\(z : G.1.1) -> <i> quotient (isAssocGroup G x y z @ i))
+            (propA (quotient x) (quotient y)))
+        (propB (quotient x)))
+    propC
+  where
+    op (x y : factor G P) : factor G P = opFactor G P x y
+    A (x y z : factor G P) : U
+      = Path (factor G P) (op x (op y z)) (op (op x y) z)
+    B (x y : factor G P) : U = (z : factor G P) -> A x y z
+    C (x : factor G P) : U = (y z : factor G P) -> A x y z
+    propA (x y z : factor G P) : isProp (A x y z)
+      = setQuotIsSet G.1.1 (factorProp G P) (op x (op y z)) (op (op x y) z)
+    propB (x y : factor G P) : isProp (B x y)
+      = propPi (factor G P) (A x y) (propA x y)
+    propC (x : factor G P) : isProp (C x)
+      = propPi (factor G P) (B x) (propB x)
+
+invFactor (G : group) (P : normalSubgroupProp G) : factor G P -> factor G P
+  = setQuotLift G.1.1 (factor G P) (factorProp G P) (factorIsSet G P)
+    (\(x : G.1.1) -> quotient (invGroup G x))
+    (\(x y : G.1.1) (r : P.1.1 (rdiv G x y)) ->
+      setQuotId G.1.1 (factorProp G P) (invGroup G x) (invGroup G y)
+        (transport (<i> P.1.1 (opGroup G (invGroup G x) (invInvGroup G y @ -i)))
+          (normalSubgroupLem G P x y r)))
+
+hasLeftInverseFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P (invFactor G P x) x) (idFactor G P)
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P (invFactor G P x) x) (idFactor G P))
+    (\(x : G.1.1) -> <i> quotient ((hasInvGroup G).1 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P (invFactor G P x) x) (idFactor G P))
+
+hasRightInverseFactor (G : group) (P : normalSubgroupProp G) :
+  (x : factor G P) -> Path (factor G P) (opFactor G P x (invFactor G P x)) (idFactor G P)
+  = setQuotIndProp G.1.1 (factorProp G P)
+    (\(x : factor G P) -> Path (factor G P) (opFactor G P x (invFactor G P x)) (idFactor G P))
+    (\(x : G.1.1) -> <i> quotient ((hasInvGroup G).2 x @ i))
+    (\(x : factor G P) -> factorIsSet G P (opFactor G P x (invFactor G P x)) (idFactor G P))
+
+factorGroup (G : group) (P : normalSubgroupProp G) : group
+  = ((factor G P, factorIsSet G P),
+     ((opFactor G P, isAssocFactor G P, idFactor G P,
+      (hasLeftIdFactor G P, hasRightIdFactor G P)), invFactor G P,
+      (hasLeftInverseFactor G P, hasRightInverseFactor G P)))
+
+subgroupHomo (G : group) (P : subgroupProp G) : grouphom (subgroup G P) G
+  = (\(u : (x : G.1.1) * P.1 x) -> u.1,
+     (\(u v : (x : G.1.1) * P.1 x) -> <_> opGroup G u.1 v.1, <_> idGroup G))
+
+subgroupSubgroup (G : group) (P Q : subgroupProp G) : subgroupProp (subgroup G Q)
+  = (prop, level, ident, inv, op) where
+    T : U = subEl G Q
+    Q' : group = subgroup G Q
+    prop (u : T): U = P.1 u.1
+    ident : prop (idGroup Q') = subgroupId G P
+    level (x : T) : isProp (prop x) = subgroupLevel G P x.1
+    inv (x : T) (p : prop x) : prop (invGroup Q' x) = subgroupInv G P x.1 p
+    op (g1 g2 : T) (p : prop g1) (q : prop g2) : prop (opGroup Q' g1 g2) = subgroupOp G P g1.1 g2.1 p q
+
+abelianSubgroupIsNormal (a : abgroup) (P : subgroupProp (abgroup' a))
+  : normalSubgroupProp (abgroup' a)
+  = (P, (abgroup' a, \(g1 g2 : a.1.1) (p : P.1 g2) -> transport (<i> P.1 (lem2 g1 g2 @ i)) p))
+  where
+    op (x y : a.1.1) : a.1.1 = opCGroup a x y
+    inv (x : a.1.1) : a.1.1 = invCGroup a x
+    e : a.1.1 = idCGroup a
+    lem1 (g1 g2 : a.1.1) : Path a.1.1 (op g2 (op g1 (inv g1))) g2
+      = composition a.1.1 (op g2 (op g1 (inv g1))) (op g2 e) g2
+        (<i> op g2 ((hasInvCGroup a).2 g1 @ i))
+        ((hasIdCGroup a).2 g2)
+    lem2 (g1 g2 : a.1.1) : Path a.1.1 g2 (conjugate (abgroup' a) g1 g2)
+      = <i> comp (<_> a.1.1) (isAssocCGroup a g2 g1 (inv g1) @ i)
+                            [ (i = 0) -> lem1 g1 g2
+                            , (i = 1) -> <j> op (isCommCGroup a g2 g1 @ j) (inv g1) ]
+
+abelianSubgroupIsAbelian (a : abgroup) (P : subgroupProp (abgroup' a)) : abgroup
+  = (H.1, (H.2, \(x y : H.1.1) ->
+      <i> (isCommCGroup a x.1 y.1 @ i,
+           lemPropF G.1.1 P.1 (subgroupLevel G P)
+             (opGroup G x.1 y.1) (opGroup G y.1 x.1)
+             (isCommCGroup a x.1 y.1)
+             (opGroup H x y).2 (opGroup H y x).2 @ i)))
+  where
+    G : group = abgroup' a
+    H : group = subgroup (abgroup' a) P
 
 --- http://cj-xu.github.io/talks/xu-m4c.pdf
 
