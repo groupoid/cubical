@@ -390,14 +390,52 @@ K' (C : chainComplex) (n : nat) : group = abgroup' (K C n)
 
 hom (C : chainComplex) : (n : nat) -> abgrouphom (K C (succ n)) (K C n) = C.2.1
 
+subgroupSubgroup (G : group) (P Q : subgroupProp G) : subgroupProp (subgroup G Q)
+  = (prop, level, ident, inv, op) where
+    T : U = subEl G Q
+    Q' : group = subgroup G Q
+    prop (u : T): U = P.1 u.1
+    ident : prop (idGroup Q') = subgroupId G P
+    level (x : T) : isProp (prop x) = subgroupLevel G P x.1
+    inv (x : T) (p : prop x) : prop (invGroup Q' x) = subgroupInv G P x.1 p
+    op (g1 g2 : T) (p : prop g1) (q : prop g2) : prop (opGroup Q' g1 g2) = subgroupOp G P g1.1 g2.1 p q
+
+abelianSubgroupIsNormal (a : abgroup) (P : subgroupProp (abgroup' a))
+  : normalSubgroupProp (abgroup' a)
+  = (P, (abgroup' a, \(g1 g2 : a.1.1) (p : P.1 g2) -> transport (<i> P.1 (lem2 g1 g2 @ i)) p))
+  where
+    op (x y : a.1.1) : a.1.1 = opCGroup a x y
+    inv (x : a.1.1) : a.1.1 = invCGroup a x
+    e : a.1.1 = idCGroup a
+    lem1 (g1 g2 : a.1.1) : Path a.1.1 (op g2 (op g1 (inv g1))) g2
+      = composition a.1.1 (op g2 (op g1 (inv g1))) (op g2 e) g2
+        (<i> op g2 ((hasInvCGroup a).2 g1 @ i))
+        ((hasIdCGroup a).2 g2)
+    lem2 (g1 g2 : a.1.1) : Path a.1.1 g2 (conjugate (abgroup' a) g1 g2)
+      = <i> comp (<_> a.1.1) (isAssocCGroup a g2 g1 (inv g1) @ i)
+                            [ (i = 0) -> lem1 g1 g2
+                            , (i = 1) -> <j> op (isCommCGroup a g2 g1 @ j) (inv g1) ]
+
+abelianSubgroupIsAbelian (a : abgroup) (P : subgroupProp (abgroup' a)) : abgroup
+  = (H.1, (H.2, \(x y : H.1.1) ->
+      <i> (isCommCGroup a x.1 y.1 @ i,
+           lemPropF G.1.1 P.1 (subgroupLevel G P)
+             (opGroup G x.1 y.1) (opGroup G y.1 x.1)
+             (isCommCGroup a x.1 y.1)
+             (opGroup H x y).2 (opGroup H y x).2 @ i)))
+  where
+    G : group = abgroup' a
+    H : group = subgroup (abgroup' a) P
+
 propZ (C : chainComplex) (n : nat) : subgroupProp (K' C (succ n))
-  = imProp (K' C (succ2 n)) (K' C (succ n)) (hom C (succ n))
+  = kerProp (K' C (succ n)) (K' C n) (hom C n)
 
 Z (C : chainComplex) (n : nat) : group = subgroup (K' C (succ n)) (propZ C n)
 
 B (C : chainComplex) (n : nat) : normalSubgroupProp (Z C n)
-  = kernelIsNormalSubgroup (Z C n) (K' C n)
-      (grouphomcomp (Z C n) (K' C (succ n)) (K' C n)
-        (subgroupHomo (K' C (succ n)) (propZ C n)) (hom C n))
+  = abelianSubgroupIsNormal (abelianSubgroupIsAbelian (K C (succ n)) (propZ C n))
+      (subgroupSubgroup (K' C (succ n))
+          (imProp (K' C (succ (succ n))) (K' C (succ n)) (hom C (succ n)))
+          (propZ C n))
 
 H (C : chainComplex) (n : nat) : group = factorGroup (Z C n) (B C n)
