@@ -128,7 +128,6 @@ Z (C : chainComplex) (n : nat) : group = subgroup (K' C (succ n)) (propZ C n)
 B (C : chainComplex) (n : nat) : normalSubgroupProp (Z C n)
   = abelianSubgroupIsNormal (abelianSubgroupIsAbelian (K C (succ n)) (propZ C n))
       (subgroupSubgroup (K' C (succ n))
-          (imProp (K' C (succ (succ n))) (K' C (succ n)) (hom C (succ n)))
-          (propZ C n))
+        (imProp (K' C (succ (succ n))) (K' C (succ n)) (hom C (succ n))) (propZ C n))
 
 H (C : chainComplex) (n : nat) : group = factorGroup (Z C n) (B C n)
