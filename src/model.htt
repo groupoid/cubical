@@ -1,0 +1,27 @@
+module model where
+import category
+
+-- https://www.matem.unam.mx/~omar/notes/modelcatsets.html
+-- https://web.math.rochester.edu/people/faculty/doug/otherpapers/pshmain.pdf
+-- https://www.uio.no/studier/emner/matnat/math/MAT9580/v18/documents/modcat.pdf
+
+-- Quillen model structure
+
+modelStructure (C: U): U
+  = (fibrations: fib C)
+  * (cofibrations: cofib C)
+  * (weakEqivalences: weak C)
+  * unit
+
+-- 5 model structures on category of sets
+
+set0: modelStructure Set = (any,any,bijections)
+set1: modelStructure Set = (bijections,any,any)
+set2: modelStructure Set = (any,bijections,any)
+set3: modelStructure Set = (surjections,injections,any)
+set4: modelStructure Set = (injections,surjections,any)
+
+-- 2 model structures on category of topological spaces
+
+quillen67: modelStructure Top = (serreFibrations,retractsCW,weakHomotopyEquivalence)
+strom1972: modelStructure Top = (hurewiczFibrations,cofibrations,strongHomotopyEquivalence)

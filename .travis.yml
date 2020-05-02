@@ -28,4 +28,4 @@ install:
   - stack build
   - CUBICAL=$(stack path --local-install-root)/bin/cubical
   - cd ..
-  - for i in src/*; do $CUBICAL -b $i; done
+  - for i in src/*.ctt; do $CUBICAL -b $i; done
