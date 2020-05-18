@@ -7,15 +7,13 @@ import suspension
 data K1 (G : group) =
     base
   | loopK1 (x : G.1.1) <i> [ (i = 0) -> base, (i = 1) -> base ]
-  | loopMulK1 (a b : G.1.1) <i j> [ (i = 0) -> comp (<_> K1 G) base [ (j = 0) -> <k> loopK1{K1 G} a @ k,
-                                                                      (j = 1) -> <k> loopK1{K1 G} b @ k ],
-                                    (i = 1) -> loopK1{K1 G} (opGroup G a b) @ j,
-                                    (j = 0) -> base,
-                                    (j = 1) -> base ]
-  | squash (a b : K1 G) (p q : Path (K1 G) a b) (r s : Path (Path (K1 G) a b) p q)
-                          <i j k> [ (i = 0) -> r @ j @ k, (i = 1) -> s @ j @ k,
-                                    (j = 0) -> p @ k,     (j = 1) -> q @ k,
-                                    (k = 0) -> a,         (k = 1) -> b ]
+  | loopMulK1 (a b : G.1.1)
+    <i j> [ (i = 0) -> comp (<_> K1 G)
+                       base [ (j = 0) -> <k> loopK1{K1 G} a @ k,
+                              (j = 1) -> <k> loopK1{K1 G} b @ k ],
+            (i = 1) -> loopK1{K1 G} (opGroup G a b) @ j,
+            (j = 0) -> base,
+            (j = 1) -> base ]
 
 -- K(G,n)
 
