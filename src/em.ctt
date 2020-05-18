@@ -17,7 +17,8 @@ data K1 (G : group) =
                                     (j = 0) -> p @ k,     (j = 1) -> q @ k,
                                     (k = 0) -> a,         (k = 1) -> b ]
 
-K2 (G: group): U = grpd2Trunc (susp (ptSpace G.1.1))
+K1'(G: group): U = grpdTrunc  (ptSpace (K1 G)) -- no squash needed for such definition
+K2 (G: group): U = grpd2Trunc (susp (ptSpace G.1.1)) -- other definitions naturally truncate n-level of K ...
 K3 (G: group): U = grpd3Trunc (susp (susp (ptSpace G.1.1)))
 
 loopSpace (G : group) : U = Path (K1 G) base base
