@@ -15,6 +15,7 @@ import nat
 
 -- Definition 2.1.7
 pointed: U = (A: U) * A
+ptSpace (A: U): U = (point: A) * unit
 point (A: pointed): A.1 = A.2
 space (A: pointed): U = A.1
 

@@ -24,11 +24,38 @@ data setTrunc (A : U)
 -- (1)-trunc, groupoid truncation
 data grpdTrunc (A : U)
   = inc (a : A)
-  | squash (a b : grpdTrunc A) (p q : Path (grpdTrunc A) a b)
-    (r s: Path (Path (grpdTrunc A) a b) p q)
+  | squash (a b : grpdTrunc A)
+           (p q : Path (grpdTrunc A) a b)
+           (r s : Path (Path (grpdTrunc A) a b) p q)
     <i j k> [ (i = 0) -> r @ j @ k , (i = 1) -> s @ j @ k ,
               (j = 0) -> p @ k ,     (j = 1) -> q @ k ,
               (k = 0) -> a ,         (k = 1) -> b ]
+
+-- (2)-trunc, groupoid-2 truncation
+data grpd2Trunc (A : U)
+  = inc (a : A)
+  | squash (a b : grpd2Trunc A)
+           (p q : Path (grpd2Trunc A) a b)
+           (r s : Path (Path (grpd2Trunc A) a b) p q)
+           (x y : Path (Path (Path (grpd2Trunc A) a b) p q) r s)
+    <i j k l> [ (i = 0) -> x @ j @ k @ l, (i = 1) -> y @ j @ k @ l,
+                (j = 0) -> r @ k @ l,     (j = 1) -> s @ k @ l,
+                (k = 0) -> p @ l,         (k = 1) -> q @ l ,
+                (l = 0) -> a ,            (l = 1) -> b ]
+
+-- (3)-trunc, groupoid-3 truncation
+data grpd3Trunc (A : U)
+  = inc (a : A)
+  | squash (a b : grpd3Trunc A)
+           (p q : Path (grpd3Trunc A) a b)
+           (r s : Path (Path (grpd3Trunc A) a b) p q)
+           (x y : Path (Path (Path (grpd3Trunc A) a b) p q) r s)
+           (z w : Path (Path (Path (Path (grpd3Trunc A) a b) p q) r s) x y)
+    <i j k l m> [ (i = 0) -> z @ j @ k @ l @ m, (i = 1) -> w @ j @ k @ l @ m,
+                  (j = 0) -> x @ k @ l @ m,     (j = 1) -> y @ k @ l @ m,
+                  (k = 0) -> r @ l @ m,         (k = 1) -> s @ l @ m,
+                  (l = 0) -> p @ m,             (l = 1) -> q @ m ,
+                  (m = 0) -> a ,                (m = 1) -> b ]
 
 propTruncIsProp (A : U) : isProp (propTrunc A) =
  \ (x y : propTrunc A) -> <i> squash {propTrunc A} x y @ i

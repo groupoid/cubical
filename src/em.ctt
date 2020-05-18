@@ -1,0 +1,38 @@
+module em where
+import algebra
+import trunc
+import pointed
+import suspension
+
+data K1 (G : group) =
+    base
+  | loopK1 (x : G.1.1) <i> [ (i = 0) -> base, (i = 1) -> base ]
+  | loopMulK1 (a b : G.1.1) <i j> [ (i = 0) -> comp (<_> K1 G) base [ (j = 0) -> <k> loopK1{K1 G} a @ k,
+                                                                      (j = 1) -> <k> loopK1{K1 G} b @ k ],
+                                    (i = 1) -> loopK1{K1 G} (opGroup G a b) @ j,
+                                    (j = 0) -> base,
+                                    (j = 1) -> base ]
+  | squash (a b : K1 G) (p q : Path (K1 G) a b) (r s : Path (Path (K1 G) a b) p q)
+                          <i j k> [ (i = 0) -> r @ j @ k, (i = 1) -> s @ j @ k,
+                                    (j = 0) -> p @ k,     (j = 1) -> q @ k,
+                                    (k = 0) -> a,         (k = 1) -> b ]
+
+K2 (G: group): U = grpd2Trunc (susp (ptSpace G.1.1))
+K3 (G: group): U = grpd3Trunc (susp (susp (ptSpace G.1.1)))
+
+loopSpace (G : group) : U = Path (K1 G) base base
+
+loop (G : group) (x : G.1.1) : loopSpace G =
+  <i> loopK1{K1 G} x @ i
+
+multK1 (G : group) (a b : loopSpace G) : loopSpace G =
+  <i> comp (<_> K1 G) base
+           [ (i = 0) -> a,
+             (i = 1) -> b ]
+
+loopMul (G : group) (a b : G.1.1) :
+  Path (loopSpace G)
+    (multK1 G (loop G a) (loop G b))
+    (loop G (opGroup G a b)) =
+  <i j> loopMulK1{K1 G} a b @ i @ j
+
