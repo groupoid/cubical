@@ -4,22 +4,22 @@ import trunc
 import pointed
 import suspension
 
-data K1 (G : group) =
-    base
-  | loopK1 (x : G.1.1) <i> [ (i = 0) -> base, (i = 1) -> base ]
-  | loopMulK1 (a b : G.1.1)
-    <i j> [ (i = 0) -> comp (<_> K1 G)
-                       base [ (j = 0) -> <k> loopK1{K1 G} a @ k,
-                              (j = 1) -> <k> loopK1{K1 G} b @ k ],
-            (i = 1) -> loopK1{K1 G} (opGroup G a b) @ j,
-            (j = 0) -> base,
-            (j = 1) -> base ]
+data K1 (G : group)
+   = base
+   | loopK1 (x : G.1.1) <i> [ (i = 0) -> base , (i = 1) -> base ]
+   | loopMulK1 (a b : G.1.1)
+     <i j> [ (i = 0) -> comp (<_> K1 G)
+                        base [ (j = 0) -> <k> loopK1{K1 G} a @ k ,
+                               (j = 1) -> <k> loopK1{K1 G} b @ k ],
+             (i = 1) -> loopK1{K1 G} (opGroup G a b) @ j ,
+             (j = 0) -> base ,
+             (j = 1) -> base ]
 
 -- K(G,n)
 
-K1'(G: group): U = grpdTrunc  (ptSpace (K1 G)) -- no squash needed for such definition
-K2 (G: group): U = grpd2Trunc (susp (ptSpace (K1 G))) -- other definitions naturally truncate n-level of K ...
-K3 (G: group): U = grpd3Trunc (susp (susp (ptSpace (K1 G))))
+K1'(G: group): U = grpdTrunc  (ptSpace (K1 G))
+K2 (G: group): U = grpd2Trunc (susp (ptSpace (K1' G)))
+K3 (G: group): U = grpd3Trunc (susp (susp (ptSpace (K1' G))))
 
 -- Properties: π_{n}(K(G,n))=G \/ π_{k/=n}(K(G,n))=1
 
