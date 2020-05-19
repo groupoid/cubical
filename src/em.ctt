@@ -17,9 +17,9 @@ data K1 (G : group)
 
 -- K(G,n)
 
-K1'(G: group): U = grpdTrunc  (ptSpace (K1 G))
-K2 (G: group): U = grpd2Trunc (susp (ptSpace (K1' G)))
-K3 (G: group): U = grpd3Trunc (susp (susp (ptSpace (K1' G))))
+K1'(G: group): U = grpdTrunc  (K1 G)
+K2 (G: group): U = grpd2Trunc (susp (K1' G))
+K3 (G: group): U = grpd3Trunc (susp (susp (K1' G)))
 
 -- Properties: π_{n}(K(G,n))=G \/ π_{k/=n}(K(G,n))=1
 
