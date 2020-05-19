@@ -20,6 +20,8 @@ two   : nat = succ one
 three : nat = succ two
 four  : nat = succ three
 five  : nat = succ four
+six   : nat = succ five
+seven : nat = succ six
 
 natCase (C:U) (a b: C): nat -> C
   = split { zero -> a ; succ n -> b }

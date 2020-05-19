@@ -3,6 +3,8 @@ import algebra
 import trunc
 import pointed
 import suspension
+import hubspokes
+import nat
 
 data K1' (G : group)
    = baseK1'
@@ -15,8 +17,10 @@ data K1' (G : group)
              (j = 0) -> baseK1' ,
              (j = 1) -> baseK1' ]
 
--- K(G,n)
+-- Nat-indexed Abelian K(G,n)
+KGn (G: abgroup) (n: nat): U = nTrunc (K1' (G.1,G.2.1)) n
 
+-- Direct Encoding
 K1 (G: group): U = grpdTrunc  (K1' G)
 K2 (G: group): U = grpd2Trunc (susp (K1' G))
 K3 (G: group): U = grpd3Trunc (susp (susp (K1' G)))

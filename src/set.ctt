@@ -29,6 +29,7 @@ prop_inj (A B: U) (f: A -> B) (sA: isSet A) (sB: isSet B): isProp (setInj A B f 
     Q: B -> U = \(b: B) -> isProp (P b)
     h: (b: B) -> isProp (Q b) = \(b: B) -> propIsProp (P b)
 
+{-
 sqDepPath (A:U) (F:A->U) (sF: (x:A) ->  (F x)) (a0 a1:A) (p: Path A a0 a1) (u0 : F a0) (u1 : F a1)
           (q r : PathP (<i> F (p@i)) u0 u1)
  : Path (PathP (<i> F (p@i)) u0 u1) q r = <i j> rem @ j @ i
@@ -40,3 +41,4 @@ sqDepPath (A:U) (F:A->U) (sF: (x:A) ->  (F x)) (a0 a1:A) (p: Path A a0 a1) (u0 :
              qi : Id (F xi) ui0 ui1 = <j>transport (<k>F (p@(i/\-j/\k)\/(i/\j)\/(j/\-k)\/(i/\k))) (q@j)
              ri : Id (F xi) ui0 ui1 = <j>transport (<k>F (p@(i/\-j/\k)\/(i/\j)\/(j/\-k)\/(i/\k))) (r@j)
     in <j>(sF xi ui0 ui1 qi ri @ j @ i)
+-}
