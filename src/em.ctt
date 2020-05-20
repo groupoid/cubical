@@ -23,12 +23,12 @@ data K1' (G : group)
              (j = 0) -> baseK1' ,
              (j = 1) -> baseK1' ]
 
--- Nat-indexed Abelian K(G,n) suitable for EM-spectrum HZ
+-- Nat-indexed Abelian K(G,n) suitable for EM-spectrum HZ, n≥1
 -- Properties: π_{n}(K(G,n))=G \/ π_{k/=n}(K(G,n))=1
 KGn (G: abgroup)
   : nat -> U
   = split
-    zero -> empty
+    zero -> empty -- should be group G with the discrete topology
     succ n -> nTrunc (suspension (K1' (G.1,G.2.1)) n) (succ n)
 
 -- Direct Encoding
