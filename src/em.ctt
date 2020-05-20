@@ -28,7 +28,7 @@ data K1' (G : group)
 KGn (G: abgroup)
   : nat -> U
   = split
-    zero -> empty -- should be group G with the discrete topology
+    zero -> G.1.1 -- should be group G with the discrete topology
     succ n -> nTrunc (suspension (K1' (G.1,G.2.1)) n) (succ n)
 
 -- Direct Encoding
