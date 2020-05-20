@@ -2,7 +2,7 @@ module hubspokes where
 import suspension
 import nat
 
--- 2-disc HIT atomic construction aka Hub and Spokes
+-- 2-disc aka Hub and Spokes, suitable even for (n=0) in other cases Eq constructor is
 data hubSpokes (S A: U)
    = base (x: A)
    | hub (f: S -> hubSpokes S A)
@@ -11,16 +11,15 @@ data hubSpokes (S A: U)
    | spokeEq (x y: A) (p: S -> Path A x y) (s: S)
      <i> [ (i=0) -> hubEq {hubSpokes S A} x y p @ i , (i=1) -> base (p s @ i) ]
 
-nTruncSpherical (A: U) (n: nat): U = hubSpokes (Sn n) A
+nTruncTotal (A: U) (n: nat): U = hubSpokes (Sn n) A
 
--- Direct n-truncation as HIT (n > 1)
+-- Simple direct n-truncation as HIT (n>1)
 data nTrunc (A : U) (n : nat)
    = base (x: A)
    | hub (f : (Sn (succ n)) -> nTrunc A n)
-   | spoke (f : (Sn (succ n)) -> nTrunc A n) (x : Sn (succ n)) <i> [ (i=0) -> hub f , (i=1) -> f x ]
+   | spoke (f : (Sn (succ n)) -> nTrunc A n) (x : Sn (succ n))
+     <i> [ (i=0) -> hub f , (i=1) -> f x ]
 
-pTrunc1 (A: U) (n: nat): U = nTrunc A one
-sTrunc0 (A: U) (n: nat): U = nTrunc A two
 gTrunc1 (A: U) (n: nat): U = nTrunc A three
 gTrunc2 (A: U) (n: nat): U = nTrunc A five
 gTrunc3 (A: U) (n: nat): U = nTrunc A six
