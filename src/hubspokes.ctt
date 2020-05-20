@@ -9,7 +9,8 @@ module hubspokes where
 import suspension
 import nat
 
--- 2-disc aka Hub and Spokes, suitable even for (n=0). In other cases Eq constructors ain't needed.
+-- 2-disc aka Hub and Spokes
+-- Eq constructors are redundant when n≥1 but give contractibility when n=0.
 data hubSpokes (S A: U)
    = base (x: A)
    | hub (f: S -> hubSpokes S A)
@@ -22,7 +23,7 @@ data hubSpokes (S A: U)
 
 nTruncTotal (A: U) (n: nat): U = hubSpokes (Sn n) A
 
--- Simple direct n-truncation as HIT (n>1)
+-- Simple direct n-truncation as HIT (n≥-1)
 data nTrunc (A : U) (n : nat)
    = base (x: A)
    | hub (f : (Sn (succ n)) -> nTrunc A n)
