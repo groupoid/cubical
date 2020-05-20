@@ -13,13 +13,15 @@ import nat
 
 -- K1' is not yet truncated K(G,1)
 data K1' (G : group)
-   = baseK1'
-   | loopK1' (x : G.1.1) <i> [ (i = 0) -> baseK1' , (i = 1) -> baseK1' ]
-   | loopMulK1' (a b : G.1.1)
-     <i j> [ (i = 0) -> composition (K1' G) baseK1' baseK1' baseK1' (<k>loopK1'{K1' G}a@k)(<k>loopK1'{K1' G}b@k)@j ,
-             (i = 1) -> loopK1' {K1' G} (opGroup G a b) @ j ,
-             (j = 0) -> baseK1' ,
-             (j = 1) -> baseK1' ]
+   = pt
+   | id (x : G.1.1)
+       <i> [ (i = 0) -> pt ,
+             (i = 1) -> pt ]
+   | mul (a b : G.1.1)
+     <i j> [ (i = 0) -> composition (K1' G) pt pt pt (<k> id {K1' G} a @ k) (<k> id {K1' G} b @ k) @ j ,
+             (i = 1) -> id {K1' G} (opGroup G a b) @ j ,
+             (j = 0) -> pt ,
+             (j = 1) -> pt ]
 
 -- Nat-indexed Abelian K(G,n) suitable for EM-spectrum HZ, n≥1
 -- Properties: π_{n}(K(G,n))=G \/ π_{k/=n}(K(G,n))=1
@@ -34,9 +36,9 @@ K1 (G: group): U = grpdTrunc  (K1' G)
 K2 (G: group): U = grpd2Trunc (susp (K1' G))
 K3 (G: group): U = grpd3Trunc (susp (susp (K1' G)))
 
-baseK1 (G : group) : K1 G = inc baseK1'
+baseK1 (G : group) : K1 G = inc pt
 loopSpaceK1 (G : group) : U = Path (K1 G) (baseK1 G) (baseK1 G)
-loopK1 (G : group) (x : G.1.1) : loopSpaceK1 G = <i> inc (loopK1' {K1' G} x @ i)
+loopK1 (G : group) (x : G.1.1) : loopSpaceK1 G = <i> inc (id {K1' G} x @ i)
 
 multK1 (G : group) (a b : loopSpaceK1 G)
   : loopSpaceK1 G
@@ -47,7 +49,7 @@ loopMulK1 (G : group) (a b : G.1.1)
   = composition
     (loopSpaceK1 G)
     (multK1 G (loopK1 G a) (loopK1 G b))
-    (<i> inc (composition (K1' G) baseK1' baseK1' baseK1' (<j>loopK1'{K1' G}a@j) (<j>loopK1'{K1' G}b@j) @ i))
+    (<i> inc (composition (K1' G) pt pt pt (<j> id {K1' G} a @ j) (<j> id {K1' G} b @ j) @ i))
     (loopK1 G (opGroup G a b))
-    (mapOverComp (K1' G)(K1 G)(\(x:K1' G)->inc x) baseK1' baseK1' baseK1' (<j>loopK1'{K1' G}a@j)(<j>loopK1'{K1' G}b@j))
-    (<i j> inc (loopMulK1'{K1' G} a b @ i @ j))
+    (mapOverComp (K1' G) (K1 G) (\(x:K1' G)->inc x) pt pt pt (<j> id {K1' G} a @ j) (<j> id {K1' G} b @ j))
+    (<i j> inc (mul{K1' G} a b @ i @ j))
