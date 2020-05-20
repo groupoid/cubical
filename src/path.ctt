@@ -167,6 +167,25 @@ mapOnPath (A B: U) (f: A -> B) (a b: A) (p: Path A a b): Path B (f a) (f b)
 --  = cong A B f a b p
     = <i> f (p @ i)
 
+mapOverComp (A B : U) (f : A -> B) (a b c : A) (p : Path A a b) (q : Path A b c) :
+  Path (Path B (f a) (f c))
+       (composition B (f a) (f b) (f c) (<i> f (p @ i)) (<i> f (q @ i)))
+       (<i> f (composition A a b c p q @ i)) =
+  J A b
+    (\(z : A) (r : Path A b z) ->
+      Path (Path B (f a) (f z))
+           (composition B (f a) (f b) (f z) (<i> f (p @ i)) (<i> f (r @ i)))
+           (<i> f (composition A a b z p r @ i)))
+    (J A a
+      (\(z : A) (p : Path A a z) ->
+         Path (Path B (f a) (f z))
+              (composition B (f a) (f z) (f z) (<i> f (p @ i)) (<_> f z))
+              (<i> f (composition A a z z p (<_> z) @ i)))
+      (<i> comp (<_> Path B (f a) (f a)) (<_> f a)
+                [ (i = 0) -> <j> kanOpRefl B (f a) (f a) (<_> f a) @ -j,
+                  (i = 1) -> <j> mapOnPath A B f a a (kanOpRefl A a a (<_> a) @ -j) ])
+      b p) c q
+
 -- subst (A: U) (P: A -> U) (a b: A) (p: Path A a b) (e: P a): P b
 --  = comp (<i> P (p @ i)) e [] -- normal form
 --  = trans (P a) (P b) (mapOnPath A U P a b p) e

@@ -16,9 +16,9 @@ data K1' (G : group)
    = baseK1'
    | loopK1' (x : G.1.1) <i> [ (i = 0) -> baseK1' , (i = 1) -> baseK1' ]
    | loopMulK1' (a b : G.1.1)
-     <i j> [ (i = 0) -> comp (<_> K1' G) baseK1'
-                        [ (j = 0) -> <k> loopK1' {K1' G} a @ k ,
-                          (j = 1) -> <k> loopK1' {K1' G} b @ k ] ,
+     <i j> [ (i = 0) -> composition (K1' G) baseK1' baseK1' baseK1'
+                                    (<k> loopK1' {K1' G} a @ k)
+                                    (<k> loopK1' {K1' G} b @ k) @ j ,
              (i = 1) -> loopK1' {K1' G} (opGroup G a b) @ j ,
              (j = 0) -> baseK1' ,
              (j = 1) -> baseK1' ]
@@ -41,7 +41,19 @@ loopsK1 (G : group) : U = Path (K1 G) (baseK1 G) (baseK1 G)
 loopK1 (G : group) (x : G.1.1) : loopsK1 G = <i> inc (loopK1' {K1' G} x @ i)
 
 multK1 (G : group) (a b : loopsK1 G) : loopsK1 G =
-  <i> comp (<_> K1 G) (baseK1 G)
-           [ (i = 0) -> a,
-             (i = 1) -> b ]
+  composition (K1 G) (baseK1 G) (baseK1 G) (baseK1 G) a b
 
+loopMulK1 (G : group) (a b : G.1.1) :
+  Path (loopsK1 G) (multK1 G (loopK1 G a) (loopK1 G b))
+                   (loopK1 G (opGroup G a b)) =
+  composition (loopsK1 G)
+    (multK1 G (loopK1 G a) (loopK1 G b))
+    (<i> inc (composition (K1' G) baseK1' baseK1' baseK1'
+                          (<j> loopK1' {K1' G} a @ j)
+                          (<j> loopK1' {K1' G} b @ j) @ i))
+    (loopK1 G (opGroup G a b))
+    (mapOverComp (K1' G) (K1 G) (\(x : K1' G) -> inc x)
+      baseK1' baseK1' baseK1'
+      (<j> loopK1' {K1' G} a @ j)
+      (<j> loopK1' {K1' G} b @ j))
+    (<i j> inc (loopMulK1'{K1' G} a b @ i @ j))
