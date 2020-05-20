@@ -12,7 +12,7 @@ import hubspokes
 import nat
 
 -- K0' is a group G with the discrete toplogy
-discreteTopology (_: abgroup): U = group -- TODO:
+discreteTopology (G: abgroup): U = group --
 
 -- K1' is not yet truncated K(G,1)
 data K1' (G : group)
