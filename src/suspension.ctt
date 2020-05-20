@@ -14,8 +14,14 @@ S3 : U = susp S2
 S4 : U = susp S3
 
 Sn: nat -> U = split
-   zero -> bool
-   succ x -> susp (Sn x)
+  zero -> bool
+  succ x -> susp (Sn x)
+
+suspension (A: U): nat -> U = split
+  zero -> A
+  succ x -> susp (suspension A x)
+
+sn: nat -> U = suspension bool
 
 merid1 (A : U) (a : A) : Path (susp A) north south = <i> merid {susp A} a @ i
 
