@@ -11,6 +11,9 @@ import suspension
 import hubspokes
 import nat
 
+-- K0' is a group G with the discrete toplogy
+discreteGroup (_: abgroup): U = group -- TODO:
+
 -- K1' is not yet truncated K(G,1)
 data K1' (G : group)
    = pt
@@ -28,7 +31,7 @@ data K1' (G : group)
 KGn (G: abgroup)
   : nat -> U
   = split
-    zero -> G.1.1 -- should be group G with the discrete topology
+    zero -> discreteGroup G
     succ n -> nTrunc (suspension (K1' (G.1,G.2.1)) n) (succ n)
 
 -- Direct Encoding
