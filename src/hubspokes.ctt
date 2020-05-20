@@ -6,8 +6,10 @@ import nat
 data hubSpokes (S A: U)
    = base (x: A)
    | hub (f: S -> hubSpokes S A)
-   | spoke (f: S -> hubSpokes S A) (s:S) <i> [ (i=0) -> hub {hubSpokes S A} f @ i , (i=1) -> f s ]
-   | hubEq (x y: A) (p: S -> Path A x y) <i> [ (i=0) -> base x , (i=1) -> base y ]
+   | spoke (f: S -> hubSpokes S A) (s:S)
+     <i> [ (i=0) -> hub {hubSpokes S A} f @ i , (i=1) -> f s ]
+   | hubEq (x y: A) (p: S -> Path A x y)
+     <i> [ (i=0) -> base x , (i=1) -> base y ]
    | spokeEq (x y: A) (p: S -> Path A x y) (s: S)
      <i> [ (i=0) -> hubEq {hubSpokes S A} x y p @ i , (i=1) -> base (p s @ i) ]
 
