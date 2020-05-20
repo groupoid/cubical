@@ -1,3 +1,9 @@
+{- Hub and Spokes:
+   - Total, Groupoid Truncations.
+   Copyright (c) Groupoid Infinity, 2014-2020.
+
+   HoTT 6.7 Hub and Spokes -}
+
 module hubspokes where
 import suspension
 import nat
