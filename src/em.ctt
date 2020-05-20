@@ -25,7 +25,11 @@ data K1' (G : group)
 
 -- Nat-indexed Abelian K(G,n) suitable for EM-spectrum HZ
 -- Properties: π_{n}(K(G,n))=G \/ π_{k/=n}(K(G,n))=1
-KGn (G: abgroup) (n: nat): U = nTrunc (suspension (K1' (G.1,G.2.1)) n)  n
+KGn (G: abgroup)
+  : nat -> U
+  = split
+    zero -> empty
+    succ n -> nTrunc (suspension (K1' (G.1,G.2.1)) n) (succ n)
 
 -- Direct Encoding
 K1 (G: group): U = grpdTrunc  (K1' G)
