@@ -2,12 +2,12 @@ module hubspokes where
 import suspension
 import nat
 
--- 2-disc aka Hub and Spokes, suitable even for (n=0) in other cases Eq constructor is
+-- 2-disc aka Hub and Spokes, suitable even for (n=0). In other cases Eq constructors ain't needed.
 data hubSpokes (S A: U)
    = base (x: A)
    | hub (f: S -> hubSpokes S A)
    | spoke (f: S -> hubSpokes S A) (s:S) <i> [ (i=0) -> hub {hubSpokes S A} f @ i , (i=1) -> f s ]
-   | hubEq (x y: A) (p: S -> Path A x y) <i> [ (i=0) -> base x , (i=1) -> base  y ]
+   | hubEq (x y: A) (p: S -> Path A x y) <i> [ (i=0) -> base x , (i=1) -> base y ]
    | spokeEq (x y: A) (p: S -> Path A x y) (s: S)
      <i> [ (i=0) -> hubEq {hubSpokes S A} x y p @ i , (i=1) -> base (p s @ i) ]
 

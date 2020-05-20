@@ -11,9 +11,9 @@ data K1' (G : group)
    = baseK1'
    | loopK1' (x : G.1.1) <i> [ (i = 0) -> baseK1' , (i = 1) -> baseK1' ]
    | loopMulK1' (a b : G.1.1)
-     <i j> [ (i = 0) -> comp (<_> K1' G)
-                        baseK1' [ (j = 0) -> <k> loopK1' {K1' G} a @ k ,
-                                  (j = 1) -> <k> loopK1' {K1' G} b @ k ],
+     <i j> [ (i = 0) -> comp (<_> K1' G) baseK1'
+                        [ (j = 0) -> <k> loopK1' {K1' G} a @ k ,
+                          (j = 1) -> <k> loopK1' {K1' G} b @ k ] ,
              (i = 1) -> loopK1' {K1' G} (opGroup G a b) @ j ,
              (j = 0) -> baseK1' ,
              (j = 1) -> baseK1' ]
