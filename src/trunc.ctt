@@ -5,6 +5,7 @@
    HoTT 6.9 Truncations -}
 
 module trunc where
+import pi
 import nat
 import path
 import prop
