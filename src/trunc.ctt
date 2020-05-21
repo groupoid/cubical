@@ -95,12 +95,18 @@ sTr (A : U) (a b : setTrunc A) (p q: Path (setTrunc A) a b)
   : Path (Path (setTrunc A) a b) p q
   = <i j> squash {setTrunc A} a b p q @ i @ j
 
-setTruncRec (A: U) (B: U) (bS: isSet B) (f: A -> B)
+setTruncRec (A B : U) (bS : isSet B) (f : A -> B)
   : setTrunc A -> B
   = split
     inc a -> f a
     squash a b p q @ i j -> (bS (setTruncRec A B bS f a) (setTruncRec A B bS f b)
       (<k> setTruncRec A B bS f (p @ k)) (<k> setTruncRec A B bS f (q @ k))) @ i @ j
+
+setTruncLift2 (A B C : U) (f : A -> B -> C) : setTrunc A -> setTrunc B -> setTrunc C =
+  setTruncRec A (setTrunc B -> setTrunc C)
+    (setPi (setTrunc B) (\(_ : setTrunc B) -> setTrunc C)
+           (\(_ : setTrunc B) -> sTr C))
+    (\(a : A) -> setTruncRec B (setTrunc C) (sTr C) (\(b : B) -> inc (f a b)))
 
 setLem (A : U) (P : A -> U) (gP : (x : A) -> isSet (P x)) (a : A)
   : (b : A) (p q : Path A a b)
