@@ -102,6 +102,35 @@ setTruncRec (A: U) (B: U) (bS: isSet B) (f: A -> B)
     squash a b p q @ i j -> (bS (setTruncRec A B bS f a) (setTruncRec A B bS f b)
       (<k> setTruncRec A B bS f (p @ k)) (<k> setTruncRec A B bS f (q @ k))) @ i @ j
 
+setLem (A : U) (P : A -> U) (gP : (x : A) -> isSet (P x)) (a : A)
+  : (b : A) (p q : Path A a b)
+    (r : Path (Path A a b) p q)
+    (a1 : P a) (b1 : P b)
+    (p1 : PathP (<i> P (p @ i)) a1 b1)
+    (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+    PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1
+  = J A a (\(b : A) (p : Path A a b) -> (q : Path A a b) (r : Path (Path A a b) p q)
+          (a1 : P a) (b1 : P b)
+          (p1 : PathP (<i> P (p @ i)) a1 b1)
+          (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+          PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1) rem
+ where
+  rem : (q : Path A a a) (r : Path (Path A a a) (refl A a) q)
+        (a1 : P a) (b1 : P a) (p1 : Path (P a) a1 b1) (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+        PathP (<i> PathP (<j> P (r @ i @ j)) a1 b1) p1 q1 =
+   J (Path A a a) (refl A a) (\(q : Path A a a) (r : Path (Path A a a) (refl A a) q) ->
+     (a1 : P a) (b1 : P a) (p1 : Path (P a) a1 b1) (q1 : PathP (<i> P (q @ i)) a1 b1) ->
+     PathP (<i> PathP (<j>P (r @ i @ j)) a1 b1) p1 q1) (gP a)
+
+setTruncElim (A : U) (B : setTrunc A -> U)
+    (bG : (z : setTrunc A) -> isSet (B z)) (f : (x : A)-> B (inc x))
+  : (z : setTrunc A) -> B z
+  = split
+    inc a -> f a
+    squash a b p q @ i j -> setLem (setTrunc A) B bG a b p q (sTr A a b p q)
+      (setTruncElim A B bG f a) (setTruncElim A B bG f b)
+      (<k> setTruncElim A B bG f (p @ k)) (<k> setTruncElim A B bG f (q @ k)) @ i @ j
+
 -- Groupoid Truncation Type
 
 gTr (A:U) (a b : grpdTrunc A) (p q : Path (grpdTrunc A) a b) (r s: Path (Path (grpdTrunc A) a b) p q)
@@ -116,7 +145,7 @@ grpdTruncRec (A B : U) (bG : isGroupoid B) (f : A -> B)
       (<m> grpdTruncRec A B bG f (p @ m)) (<m> grpdTruncRec A B bG f (q @ m))
       (<m n> grpdTruncRec A B bG f (r @ m @ n)) (<m n> grpdTruncRec A B bG f (s @ m @ n)) @ i @ j @ k
 
-lem1 (A:U) (P:A -> U) (gP:(x:A) -> isGroupoid (P x)) (a :A)
+grpdLem1 (A:U) (P:A -> U) (gP:(x:A) -> isGroupoid (P x)) (a :A)
   : (s : Path (Path A a a) (refl A a) (refl A a)) 
     (t : Path (Path (Path A a a) (refl A a) (refl A a)) (refl (Path A a a) (refl A a)) s)
     (a1 b1 : P a) (p1 q1 : Path (P a) a1 b1)
@@ -130,7 +159,7 @@ lem1 (A:U) (P:A -> U) (gP:(x:A) -> isGroupoid (P x)) (a :A)
       (r1 : Path (Path (P a) a1 b1) p1 q1)  (s1 : PathP (<i>PathP (<j>P (s@i@j)) a1 b1) p1 q1) ->
       PathP (<i>PathP (<j>PathP (<k>P (t@i@j@k)) a1 b1) p1 q1) r1 s1) (gP a)
 
-lem (A : U) (P : A -> U) (gP : (x : A) -> isGroupoid (P x)) (a : A)
+grpdLem2 (A : U) (P : A -> U) (gP : (x : A) -> isGroupoid (P x)) (a : A)
   : (b : A)
     (p q : Path A a b)
     (r s : Path (Path A a b) p q)
@@ -152,16 +181,16 @@ lem (A : U) (P : A -> U) (gP : (x : A) -> isGroupoid (P x)) (a : A)
      (s:Path (Path A a a) (refl A a) q) (t:Path (Path (Path A a a) (refl A a) q) r s)
      (a1:P a) (b1:P a) (p1: Path (P a) a1 b1) (q1: PathP (<i>P (q@i)) a1 b1)
      (r1 : PathP (<i>PathP (<j>P (r@i@j)) a1 b1) p1 q1)  (s1 : PathP (<i>PathP (<j>P (s@i@j)) a1 b1) p1 q1) ->
-     PathP (<i>PathP (<j>PathP (<k>P (t@i@j@k)) a1 b1) p1 q1) r1 s1) (lem1 A P gP a)
+     PathP (<i>PathP (<j>PathP (<k>P (t@i@j@k)) a1 b1) p1 q1) r1 s1) (grpdLem1 A P gP a)
 
-T : U
+grpdT : U
   = (A:U) (P:A -> U) (gP:(x:A) -> isGroupoid (P x))
     (a b:A) (p q:Path A a b) (r s:Path (Path A a b) p q) (t:Path (Path (Path A a b) p q) r s)
     (a1:P a) (b1:P b) (p1: PathP (<i>P (p@i)) a1 b1) (q1: PathP (<i>P (q@i)) a1 b1)
     (r1 : PathP (<i>PathP (<j>P (r@i@j)) a1 b1) p1 q1)  (s1 : PathP (<i>PathP (<j>P (s@i@j)) a1 b1) p1 q1)
  -> PathP (<i>PathP (<j>PathP (<k>P (t@i@j@k)) a1 b1) p1 q1) r1 s1
 
-grpdTruncElim1 (lem:T) (A:U) (B:(grpdTrunc A)->U) (bG:(z:grpdTrunc A)-> isGroupoid (B z)) (f:(x:A)-> B (inc x))
+grpdTruncElim1 (lem : grpdT) (A:U) (B:(grpdTrunc A)->U) (bG:(z:grpdTrunc A)-> isGroupoid (B z)) (f:(x:A)-> B (inc x))
   : (z : grpdTrunc A) -> B z
   = split
     inc a -> f a
@@ -176,4 +205,4 @@ grpdTruncElim
     (bG : (z : grpdTrunc A) -> isGroupoid (B z))
     (f : (x : A) -> B (inc x))
     (z : grpdTrunc A) -> B z
-  = grpdTruncElim1 lem
+  = grpdTruncElim1 grpdLem2
