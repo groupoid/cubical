@@ -156,7 +156,17 @@ compPathR (A:U) (a b:A) (p: Path A a b)
 
 compPathQ (A:U) (a b c d:A) (f: Path A a b) (g: Path A b c) (h: Path A c d)
         : Path (Path A a d) (composition A a c d (composition A a b c f g) h)
-                            (composition A a b d f (composition A b c d g h)) = undefined
+                            (composition A a b d f (composition A b c d g h)) =
+  J A a
+    (\(b : A) (f : Path A a b) ->
+      (c d : A) -> (g : Path A b c) -> (h : Path A c d) ->
+        Path (Path A a d) (composition A a c d (composition A a b c f g) h)
+                          (composition A a b d f (composition A b c d g h)))
+    (\(c d : A) (g : Path A a c) (h : Path A c d) ->
+      <i> comp (<_> Path A a d) (composition A a c d g h)
+               [ (i = 0) -> <j> composition A a c d (compPathL A a c g @ j) h,
+                 (i = 1) -> compPathL A a d (composition A a c d g h) ])
+    b f c d g h
 
 
 isConst (A: U) (f: A -> A): U = (x y: A) -> Path A (f x) (f y)
