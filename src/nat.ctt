@@ -13,7 +13,17 @@ import bool
 import proto
 import sigma
 
-data nat = zero | succ (n: nat)
+data nat -- ℕ
+   = zero
+   | succ (n: nat)
+
+data natinf -- ℕ-∞
+   = zero
+   | succ (n: natinf)
+   | inf
+   | succ_inf
+     <i> [ (i=0) -> inf {natinf} @ i ,
+           (i=1) -> succ {natinf} inf @ i ]
 
 one   : nat = succ zero
 two   : nat = succ one
