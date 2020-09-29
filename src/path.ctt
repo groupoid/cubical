@@ -209,6 +209,10 @@ transRefl (A: U) (a: A): Path A (transport (<_> A) a) a
 substPathP (A B: U) (p: Path U A B) (x: A) (y: B) (q: Path B (transport p x) y): PathP p x y
     = transport (<i> PathP p x (q@i)) (<i> comp (<j> p @ (i /\ j)) x [(i=0) -> <_> x])
 
+substToComp (A : U) (a b c : A) (p : Path A b c) (q : Path A a b) :
+  Path (Path A a c) (transport (<i> Path A a (p @ i)) q) (composition A a b c q p) =
+  <_> composition A a b c q p
+
 -- J is formulated in a form of Paulin-Mohring and implemented
 -- using two facts that singleton are contractible and dependent function transport.
 JPM (A: U) (a b: A) (P: singl A a -> U) (u: P (eta A a)) (p: Path A a b): P (b,p)

@@ -5,18 +5,69 @@
 module real where
 import s1
 
-helix
-  : S1 -> U
-  = split { base -> Z ; loop @ i -> sucPathZ @ i }
-
 -- Homotopy Reals
 data R
   = cz (x: Z)
   | sz (z: Z) <i> [(i=0) -> cz z, (i=1) -> cz (sucZ z)]
 
+zeroR : R = cz zeroZ
+
+glueR (z : Z) : Path R (cz z) (cz (sucZ z)) =
+  <i> sz{R} z @ i
+
+vectPos : (x : nat) -> Path R zeroR (cz (inr x)) = split
+  zero -> <_> zeroR
+  succ z -> composition R zeroR (cz (inr z)) (cz (inr (succ z))) (vectPos z) (glueR (inr z))
+
+vectNeg : (x : nat) -> Path R zeroR (cz (inl x)) = split
+  zero -> <i> glueR (predZ zeroZ) @ -i
+  succ z -> composition R zeroR (cz (inl z)) (cz (inl (succ z)))
+                                (vectNeg z) (<i> glueR (inl (succ z)) @ -i)
+
+vectR : (x : Z) -> Path R zeroR (cz x) = split
+  inl a -> vectNeg a
+  inr b -> vectPos b
+
+vectNegComp : (z : nat) ->
+  Path (Path R zeroR (cz (sucZ (inl z))))
+       (composition R zeroR (cz (inl z)) (cz (sucZ (inl z)))
+                            (vectR (inl z)) (glueR (inl z)))
+       (vectR (sucZ (inl z))) = split
+  zero -> compInvPath R (cz (predZ zeroZ)) zeroR (glueR (predZ zeroZ))
+  succ z -> <i> compInv R zeroR (cz (inl z)) (vectNeg z) (cz (inl (succ z))) (<j> glueR (inl (succ z)) @ -j) @ -i
+
+vectComp : (z : Z) ->
+  Path (Path R zeroR (cz (sucZ z)))
+       (composition R zeroR (cz z) (cz (sucZ z)) (vectR z) (glueR z))
+       (vectR (sucZ z)) = split
+  inl a -> vectNegComp a
+  inr b -> <_> vectR (inr (succ b))
+
+vectOverTransport (z : Z) : PathP (<i> Path R zeroR (glueR z @ i)) (vectR z) (vectR (sucZ z)) =
+  substPathP (Path R zeroR (cz z)) (Path R zeroR (cz (sucZ z)))
+    (<i> Path R zeroR (glueR z @ i)) (vectR z) (vectR (sucZ z))
+    (comp (<j> Path (Path R zeroR (cz (sucZ z)))
+                    (composition R zeroR (cz z) (cz (sucZ z)) (vectR z) (glueR z))
+                    (vectComp z @ j))
+          (substToComp R zeroR (cz z) (cz (sucZ z)) (glueR z) (vectR z)) [])
+
+contrR : (x : R) -> Path R zeroR x = split
+  cz x -> vectR x
+  sz z @ i -> vectOverTransport z @ i
+
+distR (x y : R) : Path R x y =
+  composition R x zeroR y (<i> contrR x @ -i) (contrR y)
+
 RtoHelix: R -> U = split
   cz x -> helix base
-  sz z p @ i -> helix (loop {S1} @ i)
+  sz z @ i -> helix (loop {S1} @ i)
+
+cis : R -> S1 = split
+  cz x -> base
+  sz z @ i -> loop{S1} @ i
+
+helixOverCis (x : R) : Path U (helix (cis x)) Z =
+  <i> helix (cis (distR x zeroR @ i))
 
 -- Flat Modality
 data flat (A: U)
