@@ -54,14 +54,37 @@ encodePos: (n: nat)-> Path Z (comp (<x> helix (loopZ n true @ x)) zeroZ []) (ze 
             (comp (<i> Path Z (htz n true) (comp (hlx true) (encodePos n @ i) []))
                   (<i> lemFib2 S1 helix base base (lnb n true) zeroZ base (inversion true) @ -i) []) [])
 
-retractZ : (n : Z) -> Path Z (encode base (decode base n)) n = split
+retractBaseZ : (n : Z) -> Path Z (encode base (decode base n)) n = split
   inl n -> encodeNeg n
   inr n -> encodePos n
 
-sectionZ (p: Path S1 base base) : Path (Path S1 base base) (decode base (encode base p)) p
+encodeDecode : U
+  = (n : Z) -> Path Z (encode base (decode base n)) n
+
+encodeDecodeLoop : Path U encodeDecode encodeDecode
+  = <i> (n : helix (loop{S1} @ i)) ->
+          Path (helix (loop{S1} @ i))
+               (encode (loop{S1} @ i) (decode (loop{S1} @ i) n)) n
+
+retractBaseLoop : (n : Z) -> Path Z (encode base (decode base n)) n
+  = transport encodeDecodeLoop retractBaseZ
+
+retractTransport : Path encodeDecode retractBaseLoop retractBaseZ
+  = <i> \(n : Z) -> ZSet (encode base (decode base n)) n (retractBaseLoop n) (retractBaseZ n) @ i
+
+retractZ : (x : S1) -> (n : helix x) -> Path (helix x) (encode x (decode x n)) n = split
+  base -> retractBaseZ
+  loop @ i -> \(n : helix (loop{S1} @ i)) ->
+    (substPathP encodeDecode encodeDecode encodeDecodeLoop
+                retractBaseZ retractBaseZ retractTransport @ i) n
+
+sectionZ (x : S1) (p: Path S1 base x) : Path (Path S1 base x) (decode x (encode x p)) p
   = comp (<i>Path (Path S1 base (p@i)) (decode (p@i) (encode (p@i) (<j>p@(i/\j)))) (<j>p@(i/\j)))
          (refl loopS1 triv) []
 
+helixFamily (x : S1) : Path U (helix x) (Path S1 base x)
+  = isoPath (helix x) (Path S1 base x) (decode x) (encode x) (sectionZ x) (retractZ x)
+
 loopS1eqZ : Path U Z loopS1
-  = isoPath Z loopS1 (decode base) (encode base) sectionZ retractZ
+  = helixFamily base
 
