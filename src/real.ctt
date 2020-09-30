@@ -3,7 +3,8 @@
    Copyright (c) Groupoid Infinity, 2016-2018. -}
 
 module real where
-import s1
+import homotopy
+import pullback
 
 -- Homotopy Reals
 data R
@@ -51,12 +52,14 @@ vectOverTransport (z : Z) : PathP (<i> Path R zeroR (glueR z @ i)) (vectR z) (ve
                     (vectComp z @ j))
           (substToComp R zeroR (cz z) (cz (sucZ z)) (glueR z) (vectR z)) [])
 
-contrR : (x : R) -> Path R zeroR x = split
+zeroPath : (x : R) -> Path R zeroR x = split
   cz x -> vectR x
   sz z @ i -> vectOverTransport z @ i
 
+contrR : isContr R = (zeroR, zeroPath)
+
 distR (x y : R) : Path R x y =
-  composition R x zeroR y (<i> contrR x @ -i) (contrR y)
+  composition R x zeroR y (<i> zeroPath x @ -i) (zeroPath y)
 
 RtoHelix: R -> U = split
   cz x -> helix base
@@ -68,6 +71,26 @@ cis : R -> S1 = split
 
 helixOverCis (x : R) : Path U (helix (cis x)) Z =
   <i> helix (cis (distR x zeroR @ i))
+
+ttPath : (x : unit) -> Path unit tt x = split
+  tt -> <_> tt
+
+contrUnitPath (A : U) (p : isContr A) : Path U A unit
+  = isoPath A unit (\(_ : A) -> tt) (\(_ : unit) -> p.1) ttPath p.2
+
+unitProdPath (A : U) : Path U (prod unit A) A
+  = isoPath (prod unit A) A (\(p : prod unit A) -> p.2) (\(x : A) -> (tt, x))
+    (\(x : A) -> <_> x) (\(x : prod unit A) -> <i> (ttPath x.1 @ i, x.2))
+
+Euler : Path U (fiber R S1 cis base) Z
+  = <i> comp (<_> U) ((x : R) * helixOverCis x @ i)
+             [ (i = 0) -> <j> (x : R) * helixFamily (cis x) @ j,
+               (i = 1) -> lem ]
+  where
+    lem : Path U (prod R Z) Z
+      = composition U (prod R Z) (prod unit Z) Z
+          (<i> prod (contrUnitPath R contrR @ i) Z)
+          (unitProdPath Z)
 
 -- Flat Modality
 data flat (A: U)
