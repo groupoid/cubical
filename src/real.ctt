@@ -82,15 +82,34 @@ unitProdPath (A : U) : Path U (prod unit A) A
   = isoPath (prod unit A) A (\(p : prod unit A) -> p.2) (\(x : A) -> (tt, x))
     (\(x : A) -> <_> x) (\(x : prod unit A) -> <i> (ttPath x.1 @ i, x.2))
 
-Euler : Path U (fiber R S1 cis base) Z
-  = <i> comp (<_> U) ((x : R) * helixOverCis x @ i)
-             [ (i = 0) -> <j> (x : R) * helixFamily (cis x) @ j,
-               (i = 1) -> lem ]
+homoOverPath (A : U) (p : isContr A) (f : A -> S1) (q : Path S1 (f p.1) base)
+  (x : S1) (z : A) : Path U (Path S1 x (f z)) (Path S1 x base)
+  = <i> Path S1 x (composition S1 (f z) (f p.1) base (<j> f (p.2 z @ -j)) q @ i)
+
+pathInvEquiv (A : U) (a b : A) : Path U (Path A a b) (Path A b a)
+  = isoPath (Path A a b) (Path A b a) (inv A a b) (inv A b a)
+      (\(p : Path A b a) -> <_> p) (\(p : Path A a b) -> <_> p)
+
+contrProd (A B : U) (p : isContr A) : Path U (prod A B) B
+  = composition U (prod A B) (prod unit B) B
+      (<i> prod (contrUnitPath A p @ i) B) (unitProdPath B)
+
+fibOfHomo (A : U) (p : isContr A) (f : A -> S1) (q : Path S1 (f p.1) base)
+  (x : S1) : Path U (fiber A S1 f x) (helix x)
+  = <i> comp (<_> U) (lem @ i)
+             [ (i = 0) -> <j> (z : A) * (homoOverPath A p f q x z @ -j),
+               (i = 1) -> <j> helixFamily x @ -j ]
   where
-    lem : Path U (prod R Z) Z
-      = composition U (prod R Z) (prod unit Z) Z
-          (<i> prod (contrUnitPath R contrR @ i) Z)
-          (unitProdPath Z)
+    lem : Path U (prod A (Path S1 x base)) (Path S1 base x)
+      = composition U (prod A (Path S1 x base)) (Path S1 x base) (Path S1 base x)
+          (contrProd A (Path S1 x base) p) (pathInvEquiv S1 x base)
+
+kerOfHomo (A : U) (p : isContr A) (f : A -> S1) (q : Path S1 (f p.1) base) :
+  Path U (fiber A S1 f base) Z
+  = fibOfHomo A p f q base
+
+Euler : Path U (fiber R S1 cis base) Z
+  = kerOfHomo R contrR cis (<_> base)
 
 -- Flat Modality
 data flat (A: U)
