@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/groupoid/cubical.svg?branch=master)](https://travis-ci.org/groupoid/cubical)
+[![Build Status](https://travis-ci.org/groupoid/infinity.svg?branch=master)](https://travis-ci.org/groupoid/infinity)
 
 Groupoid Infinity
 =================
