@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/groupoid/infinity.svg?branch=master)](https://travis-ci.org/groupoid/infinity)
+[![Support me on Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3D5HT%26type%3Dpatrons&style=flat)](https://patreon.com/5HT)
 
 Groupoid Infinity
 =================
