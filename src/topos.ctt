@@ -4,6 +4,8 @@
    - Topos, Set Topos.
    Copyright (c) Groupoid Infinity, 2014-2018 -}
 
+-- https://groupoid.space/math/topos/
+
 module topos where
 import cat
 import fun
