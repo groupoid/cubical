@@ -121,7 +121,7 @@ hasPullback (C: precategory) (D: cospan C) : U
 isCatGroupoid (C: cat): U
   = (id: (x: C.1) -> C.2 x x)
   * (c: (x y z:C.1) -> C.2 x y -> C.2 y z -> C.2 x z)
-  * (HomSet: (x y: C.1) -> isSet (C.2 x y))
+  * (HomGrpd: (x y: C.1) -> isGroupoid (C.2 x y))
   * (inv: (x y: C.1) -> C.2 x y -> C.2 y x)
   * (inv_left:  (x y: C.1) (p: C.2 x y) -> Path (C.2 x x) (c x y x p (inv x y p)) (id x))
   * (inv_right: (x y: C.1) (p: C.2 x y) -> Path (C.2 y y) (c y x y (inv x y p) p) (id y))
@@ -139,7 +139,7 @@ PathGrpd (X: U): groupoid = (PathCat X,id,c,homSet,sym X,compPathInv X,compInvPa
     Hom (A B: Ob): U = Path X A B
     id (A: Ob): Path X A A = refl X A
     c (A B C: Ob) (f: Hom A B) (g: Hom B C): Hom A C = comp (<i> Path X A (g@i)) f []
-    homSet (A B: Ob): isSet (Hom A B) = undefined
+    homSet (A B: Ob): isGroupoid (Path X A B) = undefined
     L (A B: Ob) (f: Hom A B): Path (Hom A B) (c A A B (id A) f) f = <i> compPathL X A B f @ -i
     R (A B: Ob) (f: Hom A B): Path (Hom A B) (c A B B f (id B)) f = <i> compPathR X A B f @ -i
     Q (A B C D: Ob) (f: Hom A B) (g: Hom B C) (h: Hom C D)

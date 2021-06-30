@@ -4,6 +4,7 @@
 
 module mltt where
 
+
 -- Pi built-in type (axioms)
 Pi (A: U) (B: A -> U): U = (x: A) -> B x
 lambda (A: U) (B: A -> U) (b: Pi A B): Pi A B = \(x: A) -> b x
@@ -40,11 +41,11 @@ trans   (A B: U) (p: Path U A B) (a : A): B = comp p a []
 -- Theorems:
 -- 1) Diagonal Version of J
 J (A: U) (x: A) (C: D A) (d: C x x (reflect A x)) (y: A) (p: Equ A x y) : C x y p
-  = subst (singl A x) T (eta A x) (y, p) (contr A x y p) d  where
-    T (z: singl A x): U = C x (z.1) (z.2)
+  = subst (singl A x) (\(z: singl A x) -> C x (z.1) (z.2)) (eta A x) (y, p) (contr A x y p) d
+--    T (z: singl A x): U = C x (z.1) (z.2)
 
 -- 2) Computational Rules
-trans_comp (A:U)(a:A): Path A a (trans A A (<i> A) a) = fill (<i> A) a []
+trans_comp (A:U)(a:A): Path A a (trans A A (<i> A) a) = <j> trans A A (<_> A) -j a
 subst_comp (A:U)(P:A->U)(a:A)(e:P(a)): Path (P a) e (subst A P a a (reflect A a) e) = trans_comp (P a) e
 
 comp1 (A:U)(B:A->U)(a:A)(f: Pi A B): Equ (B a) (app A B (lambda A B f) a) (f a) = reflect (B a) (f a)     -- beta

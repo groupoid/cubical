@@ -104,3 +104,4 @@ fin31: Fin three = fz two
 fin32: Fin three = fs two fin21
 fin33: Fin three = fs two fin22
 
+-- realityCheck : Equ nat (add n4 n5) n0 = refl nat n9
